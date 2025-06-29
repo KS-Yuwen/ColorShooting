@@ -1,0 +1,74 @@
+[
+	{
+		"file": "F:\\UnrealProject\\ColorShooting\\Source\\ColorShooting\\CharacterBase.cpp",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@F:\\UnrealProject\\ColorShooting\\.vscode\\compileCommands_ColorShooting\\ColorShooting.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "F:\\UnrealProject\\ColorShooting\\Source\\ColorShooting\\CharacterBase.h",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@F:\\UnrealProject\\ColorShooting\\.vscode\\compileCommands_ColorShooting\\ColorShooting.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "F:\\UnrealProject\\ColorShooting\\Source\\ColorShooting\\ColorShooting.Build.cs",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@F:\\UnrealProject\\ColorShooting\\.vscode\\compileCommands_ColorShooting\\ColorShooting.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "F:\\UnrealProject\\ColorShooting\\Source\\ColorShooting\\ColorShooting.cpp",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@F:\\UnrealProject\\ColorShooting\\.vscode\\compileCommands_ColorShooting\\ColorShooting.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "F:\\UnrealProject\\ColorShooting\\Source\\ColorShooting\\ColorShooting.h",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@F:\\UnrealProject\\ColorShooting\\.vscode\\compileCommands_ColorShooting\\ColorShooting.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "F:\\UnrealProject\\ColorShooting\\Source\\ColorShooting\\EnemyCharacter.cpp",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@F:\\UnrealProject\\ColorShooting\\.vscode\\compileCommands_ColorShooting\\ColorShooting.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "F:\\UnrealProject\\ColorShooting\\Source\\ColorShooting\\EnemyCharacter.h",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@F:\\UnrealProject\\ColorShooting\\.vscode\\compileCommands_ColorShooting\\ColorShooting.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "F:\\UnrealProject\\ColorShooting\\Source\\ColorShooting\\PlayerCharacter.cpp",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@F:\\UnrealProject\\ColorShooting\\.vscode\\compileCommands_ColorShooting\\ColorShooting.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "F:\\UnrealProject\\ColorShooting\\Source\\ColorShooting\\PlayerCharacter.h",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@F:\\UnrealProject\\ColorShooting\\.vscode\\compileCommands_ColorShooting\\ColorShooting.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	}
+]

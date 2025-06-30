@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "CharacterBase.h"
 #include "InputActionValue.h"
+#include "Common/ShotType.h"
 #include "PlayerCharacter.generated.h"
 
 class UInputMappingContext;
@@ -61,4 +62,48 @@ protected:
 	void Bomb(const FInputActionValue& Value);
 	// 武器変更処理
 	void ChangeWeapon(const FInputActionValue& Value);
+
+public:
+	/** ボムを1つ追加します */
+	UFUNCTION(BlueprintCallable, Category = "Status")
+	void AddBomb();
+
+	/**
+	 * ショットレベルを加算します
+	 * @param ShotType ショットタイプ
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Status")
+	void AddShotLevel(EShotType ShotType);
+
+	/**
+	 * スコアを加算します
+	 * @param Score スコア
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Status")
+	void AddScore(int32 Score);
+
+private:
+	/** ボムのストック数 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
+	int32 BombStock = 0;
+
+	/** 現在のショットタイプ */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
+	EShotType CurrentShotType = EShotType::Red;
+
+	/** 赤ショットのレベル */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
+	int32 RedShotLevel = 0;
+
+	/** 緑ショットのレベル */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
+	int32 GreenShotLevel = 0;
+
+	/** 青ショットのレベル */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
+	int32 BlueShotLevel = 0;
+
+	/** スコア */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
+	int32 Score = 0;
 };

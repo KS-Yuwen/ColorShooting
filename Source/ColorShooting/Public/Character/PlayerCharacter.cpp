@@ -90,3 +90,59 @@ void APlayerCharacter::ChangeWeapon(const FInputActionValue& Value)
 {
 	// TODO: 武器変更ロジックを実装
 }
+
+/** ボムを1つ追加します */
+void APlayerCharacter::AddBomb()
+{
+	BombStock++;
+}
+
+/**
+ * ショットレベルを加算します
+ * @param ShotType ショットタイプ
+ */
+void APlayerCharacter::AddShotLevel(EShotType ShotType)
+{
+	switch (ShotType)
+	{
+	case EShotType::Red:
+		if (RedShotLevel < 5)
+		{
+			RedShotLevel++;
+		}
+		else
+		{
+			AddScore(100);
+		}
+		break;
+	case EShotType::Green:
+		if (GreenShotLevel < 5)
+		{
+			GreenShotLevel++;
+		}
+		else
+		{
+			AddScore(100);
+		}
+		break;
+	case EShotType::Blue:
+		if (BlueShotLevel < 5)
+		{
+			BlueShotLevel++;
+		}
+		else
+		{
+			AddScore(100);
+		}
+		break;
+	}
+}
+
+/**
+ * スコアを加算します
+ * @param Score スコア
+ */
+void APlayerCharacter::AddScore(int32 AddScore)
+{
+	Score += AddScore;
+}

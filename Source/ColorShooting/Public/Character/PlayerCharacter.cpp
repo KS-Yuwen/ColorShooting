@@ -1,6 +1,8 @@
 #include "PlayerCharacter.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Kismet/GameplayStatics.h"
+#include "ColorShootingGameMode.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -103,6 +105,12 @@ void APlayerCharacter::AddBomb()
  */
 void APlayerCharacter::AddShotLevel(EShotType ShotType)
 {
+	AColorShootingGameMode* GameMode = Cast<AColorShootingGameMode>(UGameplayStatics::GetGameMode(this));
+	if (!GameMode)
+	{
+		return;
+	}
+
 	switch (ShotType)
 	{
 	case EShotType::Red:
@@ -112,7 +120,7 @@ void APlayerCharacter::AddShotLevel(EShotType ShotType)
 		}
 		else
 		{
-			AddScore(100);
+			GameMode->AddScore(100);
 		}
 		break;
 	case EShotType::Green:
@@ -122,7 +130,7 @@ void APlayerCharacter::AddShotLevel(EShotType ShotType)
 		}
 		else
 		{
-			AddScore(100);
+			GameMode->AddScore(100);
 		}
 		break;
 	case EShotType::Blue:
@@ -132,17 +140,8 @@ void APlayerCharacter::AddShotLevel(EShotType ShotType)
 		}
 		else
 		{
-			AddScore(100);
+			GameMode->AddScore(100);
 		}
 		break;
 	}
-}
-
-/**
- * スコアを加算します
- * @param Score スコア
- */
-void APlayerCharacter::AddScore(int32 AddScore)
-{
-	Score += AddScore;
 }

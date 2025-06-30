@@ -75,14 +75,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	void AddShotLevel(EShotType ShotType);
 
-	/**
-	 * スコアを加算します
-	 * @param Score スコア
-	 */
-	UFUNCTION(BlueprintCallable, Category = "Status")
-	void AddScore(int32 Score);
-
-private:
+	private:
 	/** ボムのストック数 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
 	int32 BombStock = 0;
@@ -102,8 +95,4 @@ private:
 	/** 青ショットのレベル */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
 	int32 BlueShotLevel = 0;
-
-	/** スコア */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
-	int32 Score = 0;
 };

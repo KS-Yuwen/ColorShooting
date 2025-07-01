@@ -63,6 +63,14 @@ protected:
 	// 武器変更処理
 	void ChangeWeapon(const FInputActionValue& Value);
 
+private:
+	// 赤ショットを発射
+	void FireRedShot();
+	// 緑ショットを発射
+	void FireGreenShot();
+	// 青ショットを発射
+	void FireBlueShot();
+
 public:
 	/** ボムを1つ追加します */
 	UFUNCTION(BlueprintCallable, Category = "Status")

@@ -27,6 +27,10 @@ public:
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
 protected:
+	// 弾丸の生成位置
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
+	TObjectPtr<USceneComponent> Muzzle;
+
 	// 体力
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
 	float Health = 100.0f;

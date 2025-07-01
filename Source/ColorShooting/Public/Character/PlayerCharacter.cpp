@@ -78,19 +78,65 @@ void APlayerCharacter::Look(const FInputActionValue& Value)
 // 発射処理
 void APlayerCharacter::Fire(const FInputActionValue& Value)
 {
-	// TODO: 発射ロジックを実装
+	switch (CurrentShotType)
+	{
+	case EShotType::Red:
+		FireRedShot();
+		break;
+	case EShotType::Green:
+		FireGreenShot();
+		break;
+	case EShotType::Blue:
+		FireBlueShot();
+		break;
+	}
+}
+
+// 赤ショットを発射
+void APlayerCharacter::FireRedShot()
+{
+	UE_LOG(LogTemp, Log, TEXT("Fire Red Shot!"));
+}
+
+// 緑ショットを発射
+void APlayerCharacter::FireGreenShot()
+{
+	UE_LOG(LogTemp, Log, TEXT("Fire Green Shot!"));
+}
+
+// 青ショットを発射
+void APlayerCharacter::FireBlueShot()
+{
+	UE_LOG(LogTemp, Log, TEXT("Fire Blue Shot!"));
 }
 
 // ボム処理
 void APlayerCharacter::Bomb(const FInputActionValue& Value)
 {
-	// TODO: ボムロジックを実装
+	if (BombStock <= 0)
+	{
+		return;
+	}
+
+	BombStock--;
+	UE_LOG(LogTemp, Log, TEXT("Fire Bomb!"));
 }
 
 // 武器変更処理
 void APlayerCharacter::ChangeWeapon(const FInputActionValue& Value)
 {
-	// TODO: 武器変更ロジックを実装
+	switch (CurrentShotType)
+	{
+	case EShotType::Red:
+		CurrentShotType = EShotType::Blue;
+		break;
+	case EShotType::Blue:
+		CurrentShotType = EShotType::Green;
+		break;
+	case EShotType::Green:
+		CurrentShotType = EShotType::Red;
+		break;
+	}
 }
 
 /** ボムを1つ追加します */

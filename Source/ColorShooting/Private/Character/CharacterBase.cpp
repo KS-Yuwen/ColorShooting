@@ -1,4 +1,4 @@
-#include "CharacterBase.h"
+#include "Character/CharacterBase.h"
 #include "Components/SceneComponent.h"
 
 ACharacterBase::ACharacterBase()

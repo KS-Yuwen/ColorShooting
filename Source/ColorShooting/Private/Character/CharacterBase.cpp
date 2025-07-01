@@ -1,9 +1,12 @@
-#include "CharacterBase.h"
+#include "Character/CharacterBase.h"
+#include "Components/SceneComponent.h"
 
 ACharacterBase::ACharacterBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	Muzzle = CreateDefaultSubobject<USceneComponent>(TEXT("Muzzle"));
+	Muzzle->SetupAttachment(GetRootComponent());
 }
 
 void ACharacterBase::BeginPlay()

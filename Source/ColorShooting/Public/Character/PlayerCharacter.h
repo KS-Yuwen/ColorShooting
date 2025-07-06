@@ -103,4 +103,8 @@ public:
 	/** 青ショットのレベル */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
 	int32 BlueShotLevel = 0;
+
+private:
+	/** 緑ショットの前回の発射時間 */
+	double LastGreenShotTime = 0.0;
 };

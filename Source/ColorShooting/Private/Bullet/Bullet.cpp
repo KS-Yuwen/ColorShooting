@@ -29,6 +29,9 @@ ABullet::ABullet()
 
 	// Die after 3 seconds by default
 	InitialLifeSpan = 3.0f;
+
+	// Initialize the bullet as not being from the player by default
+	bIsPlayerBullet = false;
 }
 
 // Called when the game starts or when spawned

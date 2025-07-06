@@ -31,6 +31,10 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	class UProjectileMovementComponent* ProjectileMovementComponent;
 
+	/** この弾がプレイヤーによって発射されたかどうかを判定します。 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Bullet")
+	bool bIsPlayerBullet;
+
 	// Function that is called when the projectile hits something.
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);

@@ -123,7 +123,11 @@ void APlayerCharacter::FireRedShot()
 	if (RedShotLevel == 1)
 	{
 		// レベル1の時は1発だけ発射
-		World->SpawnActor<ABullet>(SpawnLocation, SpawnRotation, SpawnParams);
+		ABullet* NewBullet = World->SpawnActor<ABullet>(SpawnLocation, SpawnRotation, SpawnParams);
+		if (NewBullet)
+		{
+			NewBullet->bIsPlayerBullet = true;
+		}
 	}
 	else
 	{
@@ -136,7 +140,11 @@ void APlayerCharacter::FireRedShot()
 		for (int32 i = 0; i < NumBullets; ++i)
 		{
 			const FVector CurrentSpawnLocation = StartLocation + (RightVector * i * BulletSpacing);
-			World->SpawnActor<ABullet>(CurrentSpawnLocation, SpawnRotation, SpawnParams);
+			ABullet* NewBullet = World->SpawnActor<ABullet>(CurrentSpawnLocation, SpawnRotation, SpawnParams);
+			if (NewBullet)
+			{
+				NewBullet->bIsPlayerBullet = true;
+			}
 		}
 	}
 }
@@ -230,9 +238,13 @@ void APlayerCharacter::FireGreenShot()
 	for (int32 i = 0; i < NumBullets; ++i)
 	{
 		AGreenBullet* NewBullet = World->SpawnActor<AGreenBullet>(SpawnLocation, SpawnRotation, SpawnParams);
-		if (NewBullet && ClosestEnemy)
+		if (NewBullet)
 		{
-			NewBullet->SetTarget(ClosestEnemy);
+			NewBullet->bIsPlayerBullet = true;
+			if (ClosestEnemy)
+			{
+				NewBullet->SetTarget(ClosestEnemy);
+			}
 		}
 	}
 }
@@ -264,7 +276,11 @@ void APlayerCharacter::FireBlueShot()
 	if (NumBullets == 1)
 	{
 		// レベル1の時は正面に1発だけ発射
-		World->SpawnActor<ABullet>(SpawnLocation, BaseRotation, SpawnParams);
+		ABullet* NewBullet = World->SpawnActor<ABullet>(SpawnLocation, BaseRotation, SpawnParams);
+		if (NewBullet)
+		{
+			NewBullet->bIsPlayerBullet = true;
+		}
 	}
 	else
 	{
@@ -277,7 +293,11 @@ void APlayerCharacter::FireBlueShot()
 		{
 			const float CurrentAngle = StartAngle + (i * AngleStep);
 			const FRotator SpawnRotation = BaseRotation + FRotator(0.0f, CurrentAngle, 0.0f);
-			World->SpawnActor<ABullet>(SpawnLocation, SpawnRotation, SpawnParams);
+			ABullet* NewBullet = World->SpawnActor<ABullet>(SpawnLocation, SpawnRotation, SpawnParams);
+			if (NewBullet)
+			{
+				NewBullet->bIsPlayerBullet = true;
+			}
 		}
 	}
 }

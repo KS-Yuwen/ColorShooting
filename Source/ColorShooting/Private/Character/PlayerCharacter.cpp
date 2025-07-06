@@ -3,6 +3,10 @@
 #include "EnhancedInputSubsystems.h"
 #include "Kismet/GameplayStatics.h"
 #include "ColorShootingGameMode.h"
+#include "Bullet/Bullet.h"
+#include "Bullet/GreenBullet.h"
+#include "Character/EnemyCharacter.h"
+#include "Kismet/GameplayStatics.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -95,19 +99,181 @@ void APlayerCharacter::Fire(const FInputActionValue& Value)
 // 赤ショットを発射
 void APlayerCharacter::FireRedShot()
 {
-	UE_LOG(LogTemp, Log, TEXT("Fire Red Shot!"));
+	if (RedShotLevel <= 0 || !Muzzle)
+	{
+		return;
+	}
+
+	UWorld* const World = GetWorld();
+	if (World)
+	{
+		const FRotator SpawnRotation = Muzzle->GetComponentRotation();
+		const FVector SpawnLocation = Muzzle->GetComponentLocation();
+
+		// Bulletの半径が5.0fなので、重ならないように15.0fの間隔を空ける
+		const float BulletSpacing = 15.0f;
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		SpawnParams.Instigator = GetInstigator();
+
+		if (RedShotLevel == 1)
+		{
+			// レベル1の時は1発だけ発射
+			World->SpawnActor<ABullet>(SpawnLocation, SpawnRotation, SpawnParams);
+		}
+		else
+		{
+			// レベル2以上は左右均等に発射
+			const int32 NumBullets = RedShotLevel;
+			const FVector RightVector = Muzzle->GetRightVector();
+			const float TotalWidth = (NumBullets - 1) * BulletSpacing;
+			const FVector StartLocation = SpawnLocation - (RightVector * (TotalWidth / 2.0f));
+
+			for (int32 i = 0; i < NumBullets; ++i)
+			{
+				const FVector CurrentSpawnLocation = StartLocation + (RightVector * i * BulletSpacing);
+				World->SpawnActor<ABullet>(CurrentSpawnLocation, SpawnRotation, SpawnParams);
+			}
+		}
+	}
 }
 
 // 緑ショットを発射
 void APlayerCharacter::FireGreenShot()
 {
-	UE_LOG(LogTemp, Log, TEXT("Fire Green Shot!"));
+	if (GreenShotLevel <= 0 || !Muzzle)
+	{
+		return;
+	}
+
+	// レベルに応じたクールダウンを設定
+	float FireRate = 0.0f;
+	switch (GreenShotLevel)
+	{
+	case 1:
+	case 2:
+		FireRate = 0.5f;
+		break;
+	case 3:
+	case 4:
+		FireRate = 0.3f;
+		break;
+	case 5:
+		FireRate = 0.2f;
+		break;
+	}
+
+	// クールダウンを確認
+	const double CurrentTime = GetWorld()->GetTimeSeconds();
+	if (CurrentTime < LastGreenShotTime + FireRate)
+	{
+		return;
+	}
+	LastGreenShotTime = CurrentTime;
+
+	// 最も近い敵を探す
+	TArray<AActor*> FoundEnemies;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemyCharacter::StaticClass(), FoundEnemies);
+
+	AActor* ClosestEnemy = nullptr;
+	float MinDistance = TNumericLimits<float>::Max();
+
+	for (AActor* Enemy : FoundEnemies)
+	{
+		const float Distance = GetDistanceTo(Enemy);
+		if (Distance < MinDistance)
+		{
+			MinDistance = Distance;
+			ClosestEnemy = Enemy;
+		}
+	}
+
+	// 敵がいない場合は正面に発射
+	FRotator SpawnRotation = Muzzle->GetComponentRotation();
+	if (!ClosestEnemy)
+	{
+		SpawnRotation = GetControlRotation();
+	}
+
+	UWorld* const World = GetWorld();
+	if (World)
+	{
+		const FVector SpawnLocation = Muzzle->GetComponentLocation();
+
+		// レベルに応じた弾数を設定
+		int32 NumBullets = 0;
+		switch (GreenShotLevel)
+		{
+		case 1:
+			NumBullets = 1;
+			break;
+		case 2:
+		case 3:
+			NumBullets = 2;
+			break;
+		case 4:
+		case 5:
+			NumBullets = 3;
+			break;
+		}
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		SpawnParams.Instigator = GetInstigator();
+
+		for (int32 i = 0; i < NumBullets; ++i)
+		{
+			AGreenBullet* NewBullet = World->SpawnActor<AGreenBullet>(SpawnLocation, SpawnRotation, SpawnParams);
+			if (NewBullet && ClosestEnemy)
+			{
+				NewBullet->SetTarget(ClosestEnemy);
+			}
+		}
+	}
 }
 
 // 青ショットを発射
 void APlayerCharacter::FireBlueShot()
 {
-	UE_LOG(LogTemp, Log, TEXT("Fire Blue Shot!"));
+	if (BlueShotLevel <= 0 || !Muzzle)
+	{
+		return;
+	}
+
+	UWorld* const World = GetWorld();
+	if (World)
+	{
+		const FVector SpawnLocation = Muzzle->GetComponentLocation();
+		const FRotator BaseRotation = Muzzle->GetComponentRotation();
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		SpawnParams.Instigator = GetInstigator();
+
+		// BlueShotLevelに応じて発射する弾の数を決定 (1, 3, 5, 7, 9)
+		const int32 NumBullets = (BlueShotLevel * 2) - 1;
+
+		if (NumBullets == 1)
+		{
+			// レベル1の時は正面に1発だけ発射
+			World->SpawnActor<ABullet>(SpawnLocation, BaseRotation, SpawnParams);
+		}
+		else
+		{
+			// レベル2以上はWAYショット
+			const float TotalAngle = 60.0f;
+			const float AngleStep = TotalAngle / (NumBullets - 1);
+			const float StartAngle = -TotalAngle / 2.0f;
+
+			for (int32 i = 0; i < NumBullets; ++i)
+			{
+				const float CurrentAngle = StartAngle + (i * AngleStep);
+				const FRotator SpawnRotation = BaseRotation + FRotator(0.0f, CurrentAngle, 0.0f);
+				World->SpawnActor<ABullet>(SpawnLocation, SpawnRotation, SpawnParams);
+			}
+		}
+	}
 }
 
 // ボム処理

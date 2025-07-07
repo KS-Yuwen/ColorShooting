@@ -1,10 +1,21 @@
 
 #include "Bullet/BulletPoolComponent.h"
 #include "Bullet/Bullet.h"
+#include "Engine/World.h"
+#include "UObject/ConstructorHelpers.h"
 
 UBulletPoolComponent::UBulletPoolComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+
+	// デフォルトの弾クラスを設定 (必要に応じてブループリントでオーバーライド可能)
+	static ConstructorHelpers::FClassFinder<ABullet> BulletClassFinder(TEXT("/Game/BluePrints/Bullet/BP_Bullet"));
+	if (BulletClassFinder.Succeeded())
+	{
+		BulletClass = BulletClassFinder.Class;
+	}
+
+	PoolSize = 50; // デフォルトのプールサイズ
 }
 
 void UBulletPoolComponent::BeginPlay()
@@ -46,7 +57,7 @@ ABullet* UBulletPoolComponent::GetPooledBullet(bool bIsPlayerBullet)
 
 	for (ABullet* Bullet : TargetPool)
 	{
-		if (Bullet && Bullet->IsActorHidden())
+		if (Bullet && !Bullet->IsHidden())
 		{
 			return Bullet;
 		}
@@ -68,4 +79,13 @@ ABullet* UBulletPoolComponent::GetPooledBullet(bool bIsPlayerBullet)
     }
 
 	return nullptr;
+}
+
+void UBulletPoolComponent::ReturnBulletToPool(ABullet* Bullet)
+{
+	if (Bullet)
+	{
+		Bullet->SetActive(false);
+		Bullet->SetActorLocation(FVector::ZeroVector);
+	}
 }

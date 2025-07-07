@@ -20,6 +20,7 @@ protected:
 
 public:	
 	ABullet* GetPooledBullet(bool bIsPlayerBullet);
+	void ReturnBulletToPool(ABullet* Bullet);
 
 private:
 	void CreatePool();

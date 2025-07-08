@@ -7,6 +7,7 @@
 #include "Bullet/GreenBullet.h"
 #include "Character/EnemyCharacter.h"
 #include "Kismet/GameplayStatics.h"
+#include "Subsystem/BulletPoolSubsystem.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -123,10 +124,16 @@ void APlayerCharacter::FireRedShot()
 	if (RedShotLevel == 1)
 	{
 		// レベル1の時は1発だけ発射
-		ABullet* NewBullet = World->SpawnActor<ABullet>(SpawnLocation, SpawnRotation, SpawnParams);
-		if (NewBullet)
+		UBulletPoolSubsystem* BulletPoolSubsystem = GetGameInstance()->GetSubsystem<UBulletPoolSubsystem>();
+		if (BulletPoolSubsystem)
 		{
-			NewBullet->bIsPlayerBullet = true;
+			ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool());
+			if (NewBullet)
+			{
+				NewBullet->SetActorLocationAndRotation(SpawnLocation, SpawnRotation);
+				NewBullet->bIsPlayerBullet = true;
+				NewBullet->SetActive(true);
+			}
 		}
 	}
 	else
@@ -137,13 +144,19 @@ void APlayerCharacter::FireRedShot()
 		const float TotalWidth = (NumBullets - 1) * BulletSpacing;
 		const FVector StartLocation = SpawnLocation - (RightVector * (TotalWidth / 2.0f));
 
-		for (int32 i = 0; i < NumBullets; ++i)
+		UBulletPoolSubsystem* BulletPoolSubsystem = GetGameInstance()->GetSubsystem<UBulletPoolSubsystem>();
+		if (BulletPoolSubsystem)
 		{
-			const FVector CurrentSpawnLocation = StartLocation + (RightVector * i * BulletSpacing);
-			ABullet* NewBullet = World->SpawnActor<ABullet>(CurrentSpawnLocation, SpawnRotation, SpawnParams);
-			if (NewBullet)
+			for (int32 i = 0; i < NumBullets; ++i)
 			{
-				NewBullet->bIsPlayerBullet = true;
+				const FVector CurrentSpawnLocation = StartLocation + (RightVector * i * BulletSpacing);
+				ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool());
+				if (NewBullet)
+				{
+					NewBullet->SetActorLocationAndRotation(CurrentSpawnLocation, SpawnRotation);
+					NewBullet->bIsPlayerBullet = true;
+					NewBullet->SetActive(true);
+				}
 			}
 		}
 	}
@@ -235,15 +248,22 @@ void APlayerCharacter::FireGreenShot()
 	SpawnParams.Owner = this;
 	SpawnParams.Instigator = GetInstigator();
 
+	UBulletPoolSubsystem* BulletPoolSubsystem = GetGameInstance()->GetSubsystem<UBulletPoolSubsystem>();
+	
 	for (int32 i = 0; i < NumBullets; ++i)
 	{
-		AGreenBullet* NewBullet = World->SpawnActor<AGreenBullet>(SpawnLocation, SpawnRotation, SpawnParams);
-		if (NewBullet)
+		if (BulletPoolSubsystem)
 		{
-			NewBullet->bIsPlayerBullet = true;
-			if (ClosestEnemy)
+			AGreenBullet* NewBullet = Cast<AGreenBullet>(BulletPoolSubsystem->GetBulletFromPool());
+			if (NewBullet)
 			{
-				NewBullet->SetTarget(ClosestEnemy);
+				NewBullet->SetActorLocationAndRotation(SpawnLocation, SpawnRotation);
+				NewBullet->bIsPlayerBullet = true;
+				if (ClosestEnemy)
+				{
+					NewBullet->SetTarget(ClosestEnemy);
+				}
+				NewBullet->SetActive(true);
 			}
 		}
 	}
@@ -276,10 +296,16 @@ void APlayerCharacter::FireBlueShot()
 	if (NumBullets == 1)
 	{
 		// レベル1の時は正面に1発だけ発射
-		ABullet* NewBullet = World->SpawnActor<ABullet>(SpawnLocation, BaseRotation, SpawnParams);
-		if (NewBullet)
+		UBulletPoolSubsystem* BulletPoolSubsystem = GetGameInstance()->GetSubsystem<UBulletPoolSubsystem>();
+		if (BulletPoolSubsystem)
 		{
-			NewBullet->bIsPlayerBullet = true;
+			ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool());
+			if (NewBullet)
+			{
+				NewBullet->SetActorLocationAndRotation(SpawnLocation, BaseRotation);
+				NewBullet->bIsPlayerBullet = true;
+				NewBullet->SetActive(true);
+			}
 		}
 	}
 	else
@@ -289,14 +315,20 @@ void APlayerCharacter::FireBlueShot()
 		const float AngleStep = TotalAngle / (NumBullets - 1);
 		const float StartAngle = -TotalAngle / 2.0f;
 
-		for (int32 i = 0; i < NumBullets; ++i)
+		UBulletPoolSubsystem* BulletPoolSubsystem = GetGameInstance()->GetSubsystem<UBulletPoolSubsystem>();
+		if (BulletPoolSubsystem)
 		{
-			const float CurrentAngle = StartAngle + (i * AngleStep);
-			const FRotator SpawnRotation = BaseRotation + FRotator(0.0f, CurrentAngle, 0.0f);
-			ABullet* NewBullet = World->SpawnActor<ABullet>(SpawnLocation, SpawnRotation, SpawnParams);
-			if (NewBullet)
+			for (int32 i = 0; i < NumBullets; ++i)
 			{
-				NewBullet->bIsPlayerBullet = true;
+				const float CurrentAngle = StartAngle + (i * AngleStep);
+				const FRotator SpawnRotation = BaseRotation + FRotator(0.0f, CurrentAngle, 0.0f);
+				ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool());
+				if (NewBullet)
+				{
+					NewBullet->SetActorLocationAndRotation(SpawnLocation, SpawnRotation);
+					NewBullet->bIsPlayerBullet = true;
+					NewBullet->SetActive(true);
+				}
 			}
 		}
 	}

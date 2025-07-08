@@ -48,6 +48,23 @@ void ABullet::Tick(float DeltaTime)
 
 }
 
+void ABullet::SetActive(bool bIsActive)
+{
+	SetActorHiddenInGame(!bIsActive);
+	SetActorEnableCollision(bIsActive);
+	SetActorTickEnabled(bIsActive);
+
+	if (bIsActive)
+	{
+		ProjectileMovementComponent->Activate();
+	}
+	else
+	{
+		ProjectileMovementComponent->Deactivate();
+		SetActorLocation(FVector::ZeroVector);
+	}
+}
+
 // Function that is called when the projectile hits something.
 void ABullet::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
@@ -57,5 +74,5 @@ void ABullet::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrim
 		OtherComponent->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
 
 	}
-	Destroy();
+	SetActive(false);
 }

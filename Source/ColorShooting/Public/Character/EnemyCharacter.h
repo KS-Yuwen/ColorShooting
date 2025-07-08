@@ -14,9 +14,9 @@ public:
 	AEnemyCharacter();
 
 protected:
-	// 色の種類 (0: 赤, 1: 緑, 2: 青)
+	// Color type of the enemy (0: Red, 1: Green, 2: Blue)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
-	int32 ColorType = 0;
+	int32 M_ColorType = 0;
 
 	virtual void BeginPlay() override;
 

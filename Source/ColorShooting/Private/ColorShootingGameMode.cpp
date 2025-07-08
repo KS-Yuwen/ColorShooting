@@ -8,11 +8,12 @@ AColorShootingGameMode::AColorShootingGameMode()
 	GameStateClass = AColorShootingGameState::StaticClass();
 }
 
-void AColorShootingGameMode::AddScore(int32 ScoreValue)
+void AColorShootingGameMode::AddScore(const int32 ScoreValue)
 {
     AColorShootingGameState* GS = GetGameState<AColorShootingGameState>();
-    if (GS)
+    if (GS == nullptr)
     {
-        GS->AddScore(ScoreValue);
+        return;
     }
+    GS->AddScore(ScoreValue);
 }

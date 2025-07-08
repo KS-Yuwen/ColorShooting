@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Bullet/GreenBullet.h"
 #include "GameFramework/ProjectileMovementComponent.h"
@@ -8,30 +8,42 @@
 
 AGreenBullet::AGreenBullet()
 {
-	// ホーミング弾の設定
-	ProjectileMovementComponent->bIsHomingProjectile = true;
-	ProjectileMovementComponent->HomingAccelerationMagnitude = 2000.0f;
+	// Setup homing properties
+	if (M_ProjectileMovementComponent)
+	{
+		M_ProjectileMovementComponent->bIsHomingProjectile = true;
+		M_ProjectileMovementComponent->HomingAccelerationMagnitude = 2000.0f;
+	}
 
-	// OnHitイベントを新しい関数にバインドしなおす
-	CollisionComponent->OnComponentHit.RemoveDynamic(this, &ABullet::OnHit);
-	CollisionComponent->OnComponentHit.AddDynamic(this, &AGreenBullet::OnGreenBulletHit);
+	// Re-bind the OnHit event to our specific function
+	if (M_CollisionComponent)
+	{
+		M_CollisionComponent->OnComponentHit.RemoveDynamic(this, &ABullet::OnHit);
+		M_CollisionComponent->OnComponentHit.AddDynamic(this, &AGreenBullet::OnGreenBulletHit);
+	}
 
-	bHasHitTarget = false;
+	M_bHasHitTarget = false;
 }
 
 void AGreenBullet::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// ターゲットに命中したら、ホーミングを停止
-	if (bHasHitTarget)
+	// Stop homing if the target has been hit
+	if (M_bHasHitTarget)
 	{
-		ProjectileMovementComponent->bIsHomingProjectile = false;
+		if (M_ProjectileMovementComponent)
+		{
+			M_ProjectileMovementComponent->bIsHomingProjectile = false;
+		}
 	}
-	else if (TargetEnemy.IsValid())
+	else if (M_TargetEnemy.IsValid())
 	{
-		// ターゲットを追いかける
-		ProjectileMovementComponent->HomingTargetComponent = TargetEnemy->GetRootComponent();
+		// Continue homing towards the target
+		if (M_ProjectileMovementComponent)
+		{
+			M_ProjectileMovementComponent->HomingTargetComponent = M_TargetEnemy->GetRootComponent();
+		}
 	}
 
 	CheckIfOffScreen();
@@ -39,20 +51,24 @@ void AGreenBullet::Tick(float DeltaTime)
 
 void AGreenBullet::SetTarget(AActor* NewTarget)
 {
-	TargetEnemy = NewTarget;
+	M_TargetEnemy = NewTarget;
 }
 
 void AGreenBullet::OnGreenBulletHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
-	// 敵に当たった場合
+	if (OtherActor == nullptr || OtherActor == this)
+	{
+		return;
+	}
+
+	// If it hits an enemy, mark as hit but don't destroy (it penetrates)
 	if (Cast<AEnemyCharacter>(OtherActor))
 	{
-		bHasHitTarget = true;
-		// 貫通するのでDestroy()は呼び出さない
+		M_bHasHitTarget = true;
 	}
-	else if (OtherActor != this)
+	else
 	{
-		// 敵以外（壁など）に当たった場合は消滅
+		// If it hits anything else (like a wall), destroy it
 		Destroy();
 	}
 }
@@ -60,19 +76,22 @@ void AGreenBullet::OnGreenBulletHit(UPrimitiveComponent* HitComponent, AActor* O
 void AGreenBullet::CheckIfOffScreen()
 {
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
-	if (PlayerController)
+	if (PlayerController == nullptr)
 	{
-		int32 ViewportSizeX, ViewportSizeY;
-		PlayerController->GetViewportSize(ViewportSizeX, ViewportSizeY);
+		return;
+	}
 
-		FVector2D ScreenLocation;
-		if (PlayerController->ProjectWorldLocationToScreen(GetActorLocation(), ScreenLocation))
+	int32 ViewportSizeX, ViewportSizeY;
+	PlayerController->GetViewportSize(ViewportSizeX, ViewportSizeY);
+
+	FVector2D ScreenLocation;
+	if (PlayerController->ProjectWorldLocationToScreen(GetActorLocation(), ScreenLocation))
+	{
+		// Destroy if off-screen
+		const bool bIsOffScreen = ScreenLocation.X < 0 || ScreenLocation.X > ViewportSizeX || ScreenLocation.Y < 0 || ScreenLocation.Y > ViewportSizeY;
+		if (bIsOffScreen)
 		{
-			// 画面外に出たら消滅
-			if (ScreenLocation.X < 0 || ScreenLocation.X > ViewportSizeX || ScreenLocation.Y < 0 || ScreenLocation.Y > ViewportSizeY)
-			{
-				Destroy();
-			}
+			Destroy();
 		}
 	}
 }

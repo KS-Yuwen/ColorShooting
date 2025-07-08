@@ -1,3 +1,5 @@
+// Copyright Epic Games, Inc. All Rights Reserved.
+
 #include "Item/ShotLevelUpItem.h"
 #include "Character/PlayerCharacter.h"
 
@@ -5,9 +7,12 @@ void AShotLevelUpItem::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, 
 {
     Super::OnOverlapBegin(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 
-    if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(OtherActor))
+    APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(OtherActor);
+    if (PlayerCharacter == nullptr)
     {
-        PlayerCharacter->AddShotLevel(ShotType);
-        OnCollected();
+        return;
     }
+
+    PlayerCharacter->AddShotLevel(M_ShotType);
+    OnCollected();
 }

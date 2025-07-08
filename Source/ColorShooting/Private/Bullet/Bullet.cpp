@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Bullet/Bullet.h"
 #include "Components/SphereComponent.h"
@@ -11,21 +11,21 @@ ABullet::ABullet()
 	PrimaryActorTick.bCanEverTick = true;
 
 	// Use a sphere as a simple collision representation
-	CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
-	CollisionComponent->InitSphereRadius(5.0f);
-	CollisionComponent->SetCollisionProfileName(TEXT("Projectile"));
-	CollisionComponent->OnComponentHit.AddDynamic(this, &ABullet::OnHit);
+	M_CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
+	M_CollisionComponent->InitSphereRadius(5.0f);
+	M_CollisionComponent->SetCollisionProfileName(TEXT("Projectile"));
+	M_CollisionComponent->OnComponentHit.AddDynamic(this, &ABullet::OnHit);
 
 	// Set the sphere's collision profile name to "Projectile"
-	RootComponent = CollisionComponent;
+	RootComponent = M_CollisionComponent;
 
 	// Use this component to drive this projectile's movement.
-	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
-	ProjectileMovementComponent->SetUpdatedComponent(CollisionComponent);
-	ProjectileMovementComponent->InitialSpeed = 3000.f;
-	ProjectileMovementComponent->MaxSpeed = 3000.f;
-	ProjectileMovementComponent->bRotationFollowsVelocity = true;
-	ProjectileMovementComponent->bShouldBounce = true;
+	M_ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
+	M_ProjectileMovementComponent->SetUpdatedComponent(M_CollisionComponent);
+	M_ProjectileMovementComponent->InitialSpeed = 3000.f;
+	M_ProjectileMovementComponent->MaxSpeed = 3000.f;
+	M_ProjectileMovementComponent->bRotationFollowsVelocity = true;
+	M_ProjectileMovementComponent->bShouldBounce = true;
 
 	// Die after 3 seconds by default
 	InitialLifeSpan = 3.0f;
@@ -56,11 +56,11 @@ void ABullet::SetActive(bool bIsActive)
 
 	if (bIsActive)
 	{
-		ProjectileMovementComponent->Activate();
+		M_ProjectileMovementComponent->Activate();
 	}
 	else
 	{
-		ProjectileMovementComponent->Deactivate();
+		M_ProjectileMovementComponent->Deactivate();
 		SetActorLocation(FVector::ZeroVector);
 	}
 }
@@ -68,11 +68,16 @@ void ABullet::SetActive(bool bIsActive)
 // Function that is called when the projectile hits something.
 void ABullet::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
+	if (OtherActor == nullptr || OtherActor == this || OtherComponent == nullptr)
+	{
+		SetActive(false);
+		return;
+	}
+
 	// Only add impulse and destroy projectile if we hit a physics
-	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComponent != nullptr) && OtherComponent->IsSimulatingPhysics())
+	if (OtherComponent->IsSimulatingPhysics())
 	{
 		OtherComponent->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
-
 	}
 	SetActive(false);
 }

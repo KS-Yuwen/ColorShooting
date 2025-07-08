@@ -15,5 +15,5 @@ class COLORSHOOTING_API AColorShootingGameMode : public AGameModeBase
 public:
 	AColorShootingGameMode();
 
-	void AddScore(int32 ScoreValue);
+	void AddScore(const int32 ScoreValue);
 };

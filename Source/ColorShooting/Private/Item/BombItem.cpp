@@ -1,4 +1,6 @@
 
+// Copyright Epic Games, Inc. All Rights Reserved.
+
 #include "Item/BombItem.h"
 #include "Character/PlayerCharacter.h"
 
@@ -6,9 +8,12 @@ void ABombItem::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor*
 {
     Super::OnOverlapBegin(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 
-    if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(OtherActor))
+    APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(OtherActor);
+    if (PlayerCharacter == nullptr)
     {
-        PlayerCharacter->AddBomb();
-        OnCollected();
+        return;
     }
+
+    PlayerCharacter->AddBomb();
+    OnCollected();
 }

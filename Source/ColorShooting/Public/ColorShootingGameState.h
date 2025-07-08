@@ -14,12 +14,12 @@ public:
     AColorShootingGameState();
 
     UFUNCTION(BlueprintCallable, Category = "Score")
-    void AddScore(int32 ScoreValue);
+    void AddScore(const int32 ScoreValue);
 
     UFUNCTION(BlueprintPure, Category = "Score")
     int32 GetScore() const;
 
 private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Score", meta = (AllowPrivateAccess = "true"))
-    int32 Score;
+    int32 M_Score;
 };

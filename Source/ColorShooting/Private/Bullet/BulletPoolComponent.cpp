@@ -8,14 +8,14 @@ UBulletPoolComponent::UBulletPoolComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
-	// デフォルトの弾クラスを設定 (必要に応じてブループリントでオーバーライド可能)
+	// Set default bullet class (can be overridden in Blueprints)
 	static ConstructorHelpers::FClassFinder<ABullet> BulletClassFinder(TEXT("/Game/BluePrints/Bullet/BP_Bullet"));
 	if (BulletClassFinder.Succeeded())
 	{
-		BulletClass = BulletClassFinder.Class;
+		M_BulletClass = BulletClassFinder.Class;
 	}
 
-	PoolSize = 50; // デフォルトのプールサイズ
+	M_PoolSize = 50; // Default pool size
 }
 
 void UBulletPoolComponent::BeginPlay()
@@ -26,57 +26,60 @@ void UBulletPoolComponent::BeginPlay()
 
 void UBulletPoolComponent::CreatePool()
 {
-	if (BulletClass == nullptr) return;
-
-	for (int32 i = 0; i < PoolSize; ++i)
+	if (M_BulletClass == nullptr)
 	{
-		ABullet* Bullet = GetWorld()->SpawnActor<ABullet>(BulletClass, FVector::ZeroVector, FRotator::ZeroRotator);
+		return;
+	}
+
+	for (uint32 i = 0; i < M_PoolSize; ++i)
+	{
+		ABullet* Bullet = GetWorld()->SpawnActor<ABullet>(M_BulletClass, FVector::ZeroVector, FRotator::ZeroRotator);
 		if (Bullet)
 		{
 			Bullet->SetActive(false);
-			BulletPool.Add(Bullet);
+			M_BulletPool.Add(Bullet);
 
 			// Assign half to player and half to enemy
-			if (i < PoolSize / 2)
+			if (i < M_PoolSize / 2)
 			{
 				Bullet->bIsPlayerBullet = true;
-				PooledPlayerBullets.Add(Bullet);
+				M_PooledPlayerBullets.Add(Bullet);
 			}
 			else
 			{
 				Bullet->bIsPlayerBullet = false;
-				PooledEnemyBullets.Add(Bullet);
+				M_PooledEnemyBullets.Add(Bullet);
 			}
 		}
 	}
 }
 
-ABullet* UBulletPoolComponent::GetPooledBullet(bool bIsPlayerBullet)
+ABullet* UBulletPoolComponent::GetPooledBullet(const bool bIsPlayerBullet)
 {
-	TArray<TObjectPtr<ABullet>>& TargetPool = bIsPlayerBullet ? PooledPlayerBullets : PooledEnemyBullets;
+	auto& TargetPool = bIsPlayerBullet ? M_PooledPlayerBullets : M_PooledEnemyBullets;
 
 	for (ABullet* Bullet : TargetPool)
 	{
-		if (Bullet && !Bullet->IsHidden())
+		if (Bullet && Bullet->IsActorTickEnabled()) // Check if the bullet is active
 		{
-			return Bullet;
+			continue;
 		}
+		return Bullet;
 	}
 
-	// プールに利用可能な弾がない場合、新しく生成するか、nullを返すか選択できます。
-    // ここでは、新しい弾を生成してプールに追加します。
-    if (BulletClass)
-    {
-        ABullet* NewBullet = GetWorld()->SpawnActor<ABullet>(BulletClass, FVector::ZeroVector, FRotator::ZeroRotator);
-        if (NewBullet)
-        {
-            NewBullet->SetActive(false);
-            NewBullet->bIsPlayerBullet = bIsPlayerBullet;
-            TargetPool.Add(NewBullet);
-			BulletPool.Add(NewBullet); // Add to the main pool as well
-            return NewBullet;
-        }
-    }
+	// If no bullets are available in the pool, create a new one.
+	if (M_BulletClass)
+	{
+		ABullet* NewBullet = GetWorld()->SpawnActor<ABullet>(M_BulletClass, FVector::ZeroVector, FRotator::ZeroRotator);
+		if (NewBullet)
+		{
+			NewBullet->SetActive(false);
+			NewBullet->bIsPlayerBullet = bIsPlayerBullet;
+			TargetPool.Add(NewBullet);
+			M_BulletPool.Add(NewBullet); // Add to the main pool as well
+			return NewBullet;
+		}
+	}
 
 	return nullptr;
 }
@@ -86,6 +89,5 @@ void UBulletPoolComponent::ReturnBulletToPool(ABullet* Bullet)
 	if (Bullet)
 	{
 		Bullet->SetActive(false);
-		Bullet->SetActorLocation(FVector::ZeroVector);
 	}
 }

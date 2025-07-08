@@ -26,12 +26,12 @@ public:
 	void SetActive(bool bIsActive);
 
 	// Sphere collision component
-	UPROPERTY(VisibleDefaultsOnly, Category = Projectile)
-	class USphereComponent* CollisionComponent;
+	UPROPERTY(VisibleDefaultsOnly, Category = "Projectile")
+	TObjectPtr<class USphereComponent> M_CollisionComponent;
 
 	// Projectile movement component
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	class UProjectileMovementComponent* ProjectileMovementComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UProjectileMovementComponent> M_ProjectileMovementComponent;
 
 	/** この弾がプレイヤーによって発射されたかどうかを判定します。 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Bullet")

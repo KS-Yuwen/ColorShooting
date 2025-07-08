@@ -1,36 +1,44 @@
+// Copyright Epic Games, Inc. All Rights Reserved.
+
 #include "Item/ItemBase.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/RotatingMovementComponent.h"
+#include "GameFramework/Pawn.h"
 
 AItemBase::AItemBase()
 {
 	PrimaryActorTick.bCanEverTick = false;
 
-	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
-	RootComponent = SphereComponent;
-	SphereComponent->SetCollisionProfileName(FName("OverlapAllDynamic"));
+	M_SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
+	RootComponent = M_SphereComponent;
+	M_SphereComponent->SetCollisionProfileName(FName("OverlapAllDynamic"));
 
-	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
-	MeshComponent->SetupAttachment(RootComponent);
-	MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	M_MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
+	M_MeshComponent->SetupAttachment(RootComponent);
+	M_MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	RotatingMovementComponent = CreateDefaultSubobject<URotatingMovementComponent>(TEXT("RotatingMovementComponent"));
+	M_RotatingMovementComponent = CreateDefaultSubobject<URotatingMovementComponent>(TEXT("RotatingMovementComponent"));
 }
 
 void AItemBase::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &AItemBase::OnOverlapBegin);
+	if (M_SphereComponent)
+	{
+		M_SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &AItemBase::OnOverlapBegin);
+	}
 }
 
 void AItemBase::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
-	if (OtherActor && OtherActor->IsA(APawn::StaticClass()))
+	if (OtherActor == nullptr || !OtherActor->IsA(APawn::StaticClass()))
 	{
-		OnCollected();
+		return;
 	}
+
+	OnCollected();
 }
 
 void AItemBase::OnCollected()

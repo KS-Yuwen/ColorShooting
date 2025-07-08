@@ -1,15 +1,17 @@
+// Copyright Epic Games, Inc. All Rights Reserved.
+
 #pragma once
 
 #include "CoreMinimal.h"
 #include "CharacterBase.h"
-#include "InputActionValue.h"
 #include "Common/ShotType.h"
 #include "PlayerCharacter.generated.h"
 
+struct FInputActionValue;
 class UInputMappingContext;
 class UInputAction;
 
-// プレイヤーキャラクタークラス
+// Player character class
 UCLASS()
 class COLORSHOOTING_API APlayerCharacter : public ACharacterBase
 {
@@ -24,87 +26,86 @@ protected:
 public:
 	virtual void Tick(float DeltaTime) override;
 
-	// 入力コンポーネントの設定
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-protected:
-	// 入力マッピングコンテキスト
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	UInputMappingContext* PlayerMappingContext;
-
-	// 移動アクション
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	UInputAction* MoveAction;
-
-	// 見回すアクション
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	UInputAction* LookAction;
-
-	// 発射アクション
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	UInputAction* FireAction;
-
-	// ボムアクション
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	UInputAction* BombAction;
-
-	// 武器変更アクション
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	UInputAction* ChangeWeaponAction;
-
-	// 移動処理
-	void Move(const FInputActionValue& Value);
-	// 見回す処理
-	void Look(const FInputActionValue& Value);
-	// 発射処理
-	void Fire(const FInputActionValue& Value);
-	// ボム処理
-	void Bomb(const FInputActionValue& Value);
-	// 武器変更処理
-	void ChangeWeapon(const FInputActionValue& Value);
-
-private:
-	// 赤ショットを発射
-	void FireRedShot();
-	// 緑ショットを発射
-	void FireGreenShot();
-	// 青ショットを発射
-	void FireBlueShot();
-
 public:
-	/** ボムを1つ追加します */
+	/** Adds one bomb to the stock */
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	void AddBomb();
 
 	/**
-	 * ショットレベルを加算します
-	 * @param ShotType ショットタイプ
+	 * Adds a level to the specified shot type.
+	 * @param ShotType The type of shot to level up.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Status")
-	void AddShotLevel(EShotType ShotType);
+	void AddShotLevel(const EShotType ShotType);
 
-	private:
-	/** ボムのストック数 */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
-	int32 BombStock = 0;
+protected:
+	// Input Mapping Context
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputMappingContext> M_PlayerMappingContext;
 
-	/** 現在のショットタイプ */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
-	EShotType CurrentShotType = EShotType::Red;
+	// Move Input Action
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> M_MoveAction;
 
-	/** 赤ショットのレベル */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
-	int32 RedShotLevel = 0;
+	// Look Input Action
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> M_LookAction;
 
-	/** 緑ショットのレベル */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
-	int32 GreenShotLevel = 0;
+	// Fire Input Action
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> M_FireAction;
 
-	/** 青ショットのレベル */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
-	int32 BlueShotLevel = 0;
+	// Bomb Input Action
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> M_BombAction;
+
+	// Change Weapon Input Action
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
+	TObjectPtr<UInputAction> M_ChangeWeaponAction;
+
+	// Handles move input
+	void Move(const FInputActionValue& Value);
+	// Handles look input
+	void Look(const FInputActionValue& Value);
+	// Handles fire input
+	void Fire(const FInputActionValue& Value);
+	// Handles bomb input
+	void Bomb(const FInputActionValue& Value);
+	// Handles weapon change input
+	void ChangeWeapon(const FInputActionValue& Value);
 
 private:
-	/** 緑ショットの前回の発射時間 */
-	double LastGreenShotTime = 0.0;
+	// Fires the red shot type
+	void FireRedShot();
+	// Fires the green shot type
+	void FireGreenShot();
+	// Fires the blue shot type
+	void FireBlueShot();
+
+private:
+	/** Current number of bombs in stock */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
+	int32 M_BombStock = 0;
+
+	/** Current selected shot type */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
+	EShotType M_CurrentShotType = EShotType::Red;
+
+	/** Current level of the red shot */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
+	int32 M_RedShotLevel = 0;
+
+	/** Current level of the green shot */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
+	int32 M_GreenShotLevel = 0;
+
+	/** Current level of the blue shot */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
+	int32 M_BlueShotLevel = 0;
+
+private:
+	/** Timestamp of the last green shot fire */
+	double M_LastGreenShotTime = 0.0;
 };

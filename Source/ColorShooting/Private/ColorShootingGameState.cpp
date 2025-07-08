@@ -3,15 +3,15 @@
 
 AColorShootingGameState::AColorShootingGameState()
 {
-    Score = 0;
+    M_Score = 0;
 }
 
-void AColorShootingGameState::AddScore(int32 ScoreValue)
+void AColorShootingGameState::AddScore(const int32 ScoreValue)
 {
-    Score += ScoreValue;
+    M_Score += ScoreValue;
 }
 
 int32 AColorShootingGameState::GetScore() const
 {
-    return Score;
+    return M_Score;
 }

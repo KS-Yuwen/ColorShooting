@@ -27,18 +27,18 @@ private:
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Bullet Pool")
-	TSubclassOf<ABullet> BulletClass;
+	TSubclassOf<ABullet> M_BulletClass;
 
 	UPROPERTY(EditAnywhere, Category = "Bullet Pool")
-	int PoolSize = 20;
+	uint32 M_PoolSize = 20;
 
 private:
 	UPROPERTY()
-	TArray<TObjectPtr<ABullet>> BulletPool;
+	TArray<TObjectPtr<ABullet>> M_BulletPool;
 
 	UPROPERTY()
-	TArray<TObjectPtr<ABullet>> PooledPlayerBullets;
+	TArray<TObjectPtr<ABullet>> M_PooledPlayerBullets;
 
 	UPROPERTY()
-	TArray<TObjectPtr<ABullet>> PooledEnemyBullets;
+	TArray<TObjectPtr<ABullet>> M_PooledEnemyBullets;
 };

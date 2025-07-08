@@ -23,7 +23,7 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Bullet Pool")
     void ReturnBulletToPool(AActor* Bullet);
 
-protected:
+private:
     UPROPERTY()
     TObjectPtr<UBulletPoolComponent> M_BulletPoolComponent;
 };

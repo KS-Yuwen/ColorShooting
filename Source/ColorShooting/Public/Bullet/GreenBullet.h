@@ -27,10 +27,10 @@ protected:
 private:
 	/** 追尾する敵 */
 	UPROPERTY(VisibleAnywhere, Category = "Homing")
-	TWeakObjectPtr<AActor> TargetEnemy;
+	TWeakObjectPtr<AActor> M_TargetEnemy;
 
 	/** ターゲットに命中したかどうか */
-	bool bHasHitTarget;
+	bool M_bHasHitTarget;
 
 	/** 画面外に出たかどうかをチェックします */
 	void CheckIfOffScreen();

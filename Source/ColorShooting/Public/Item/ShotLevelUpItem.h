@@ -18,6 +18,6 @@ protected:
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Type", meta = (AllowPrivateAccess = "true"))
-	EShotType ShotType = EShotType::Red;
+	EShotType M_ShotType = EShotType::Red;
 	
 };

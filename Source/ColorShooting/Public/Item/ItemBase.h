@@ -24,13 +24,14 @@ protected:
 
 	virtual void OnCollected();
 
+protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<USphereComponent> SphereComponent;
+	TObjectPtr<USphereComponent> M_SphereComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<UStaticMeshComponent> MeshComponent;
+	TObjectPtr<UStaticMeshComponent> M_MeshComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
-	TObjectPtr<URotatingMovementComponent> RotatingMovementComponent;
+	TObjectPtr<URotatingMovementComponent> M_RotatingMovementComponent;
 
 };

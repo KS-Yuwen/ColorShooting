@@ -3,6 +3,7 @@
 #include "Bullet/Bullet.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Character/EnemyCharacter.h"
 
 // Sets default values
 ABullet::ABullet()
@@ -72,6 +73,20 @@ void ABullet::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrim
 	{
 		SetActive(false);
 		return;
+	}
+
+	AEnemyCharacter* EnemyCharacter = Cast<AEnemyCharacter>(OtherActor);
+	if (bIsPlayerBullet && EnemyCharacter != nullptr)
+	{
+		if (EnemyCharacter->GetColorType() == M_ShotType)
+		{
+			// Reflect the bullet with a random angle
+			const FVector ReflectionVector = FMath::GetReflectionVector(GetVelocity(), Hit.ImpactNormal);
+			const FVector RandomizedReflectionVector = ReflectionVector + FMath::VRand() * 500.0f;
+			M_ProjectileMovementComponent->Velocity = RandomizedReflectionVector.GetSafeNormal() * M_ProjectileMovementComponent->InitialSpeed;
+			bWasReflected = true;
+			return; // Don't destroy the bullet
+		}
 	}
 
 	// Only add impulse and destroy projectile if we hit a physics

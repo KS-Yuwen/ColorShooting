@@ -215,6 +215,7 @@ void APlayerCharacter::FireGreenShot()
 		{
 			NewBullet->SetActorLocationAndRotation(SpawnLocation, SpawnRotation);
 			NewBullet->bIsPlayerBullet = true;
+			NewBullet->M_ShotType = EShotType::Green;
 			if (ClosestEnemy)
 			{
 				NewBullet->SetTarget(ClosestEnemy);
@@ -248,6 +249,7 @@ void APlayerCharacter::FireBlueShot()
 		{
 			NewBullet->SetActorLocationAndRotation(SpawnLocation, BaseRotation);
 			NewBullet->bIsPlayerBullet = true;
+			NewBullet->M_ShotType = EShotType::Blue;
 			NewBullet->SetActive(true);
 		}
 	}
@@ -266,6 +268,7 @@ void APlayerCharacter::FireBlueShot()
 			{
 				NewBullet->SetActorLocationAndRotation(SpawnLocation, SpawnRotation);
 				NewBullet->bIsPlayerBullet = true;
+				NewBullet->M_ShotType = EShotType::Blue;
 				NewBullet->SetActive(true);
 			}
 		}

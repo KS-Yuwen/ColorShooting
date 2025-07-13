@@ -24,6 +24,14 @@ protected:
 public:
 	virtual void Tick(float DeltaTime) override;
 
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
 	UFUNCTION(BlueprintCallable, Category = "Enemy")
 	EShotType GetColorType() const { return M_ColorType; }
+
+protected:
+	virtual void OnDeath() override;
+
+private:
+	bool bKilledByReflectedBullet = false;
 };

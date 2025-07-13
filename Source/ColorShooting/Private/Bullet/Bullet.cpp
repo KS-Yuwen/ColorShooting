@@ -84,9 +84,7 @@ void ABullet::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrim
 			const FVector ReflectionVector = FMath::GetReflectionVector(GetVelocity(), Hit.ImpactNormal);
 			const FVector RandomizedReflectionVector = ReflectionVector + FMath::VRand() * 500.0f;
 			M_ProjectileMovementComponent->Velocity = RandomizedReflectionVector.GetSafeNormal() * M_ProjectileMovementComponent->InitialSpeed;
-			
-			// Prevent the reflected bullet from hitting the player
-			bIsPlayerBullet = false;
+			bWasReflected = true;
 			return; // Don't destroy the bullet
 		}
 	}

@@ -71,9 +71,9 @@ void AGreenBullet::OnGreenBulletHit(UPrimitiveComponent* HitComponent, AActor* O
 			const FVector RandomizedReflectionVector = ReflectionVector + FMath::VRand() * 500.0f;
 			M_ProjectileMovementComponent->Velocity = RandomizedReflectionVector.GetSafeNormal() * M_ProjectileMovementComponent->InitialSpeed;
 
-			// Stop homing and prevent hitting the player
+			// Stop homing
 			M_ProjectileMovementComponent->bIsHomingProjectile = false;
-			bIsPlayerBullet = false;
+			bWasReflected = true;
 			return; // Don't destroy the bullet
 		}
 	}

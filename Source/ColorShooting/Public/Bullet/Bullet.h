@@ -38,6 +38,10 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Bullet")
 	bool bIsPlayerBullet;
 
+	/** この弾が反射されたものかどうかを判定します。 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Bullet")
+	bool bWasReflected;
+
 	/** The color type of this bullet. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Bullet")
 	EShotType M_ShotType;

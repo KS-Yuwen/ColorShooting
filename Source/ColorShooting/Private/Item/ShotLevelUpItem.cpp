@@ -27,5 +27,5 @@ void AShotLevelUpItem::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, 
 
 void AShotLevelUpItem::ChangeShotType()
 {
-	M_ShotType = static_cast<EShotType>(FMath::RandRange(0, static_cast<int32>(EShotType::MAX) - 1));
+	M_ShotType = static_cast<EShotType>(FMath::RandRange(0, static_cast<int32>(EShotType::Max) - 1));
 }

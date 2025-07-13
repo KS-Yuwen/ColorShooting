@@ -61,6 +61,23 @@ void AGreenBullet::OnGreenBulletHit(UPrimitiveComponent* HitComponent, AActor* O
 		return;
 	}
 
+	AEnemyCharacter* EnemyCharacter = Cast<AEnemyCharacter>(OtherActor);
+	if (bIsPlayerBullet && EnemyCharacter != nullptr)
+	{
+		if (EnemyCharacter->GetColorType() == M_ShotType)
+		{
+			// Reflect the bullet with a random angle
+			const FVector ReflectionVector = FMath::GetReflectionVector(GetVelocity(), Hit.ImpactNormal);
+			const FVector RandomizedReflectionVector = ReflectionVector + FMath::VRand() * 500.0f;
+			M_ProjectileMovementComponent->Velocity = RandomizedReflectionVector.GetSafeNormal() * M_ProjectileMovementComponent->InitialSpeed;
+
+			// Stop homing and prevent hitting the player
+			M_ProjectileMovementComponent->bIsHomingProjectile = false;
+			bIsPlayerBullet = false;
+			return; // Don't destroy the bullet
+		}
+	}
+
 	// If it hits an enemy, mark as hit but don't destroy (it penetrates)
 	if (Cast<AEnemyCharacter>(OtherActor))
 	{

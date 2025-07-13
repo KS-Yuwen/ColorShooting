@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Common/ShotType.h"
 #include "Bullet.generated.h"
 
 UCLASS()
@@ -36,6 +37,10 @@ public:
 	/** この弾がプレイヤーによって発射されたかどうかを判定します。 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Bullet")
 	bool bIsPlayerBullet;
+
+	/** The color type of this bullet. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Bullet")
+	EShotType M_ShotType;
 
 	// Function that is called when the projectile hits something.
 	UFUNCTION()

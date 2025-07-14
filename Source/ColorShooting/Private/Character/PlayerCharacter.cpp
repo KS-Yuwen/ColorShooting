@@ -10,6 +10,7 @@
 #include "Character/EnemyCharacter.h"
 #include "Subsystem/BulletPoolSubsystem.h"
 #include "InputActionValue.h"
+#include "Subsystem/GameConstantManager.h"
 
 APlayerCharacter::APlayerCharacter()
 {
@@ -19,6 +20,15 @@ APlayerCharacter::APlayerCharacter()
 void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	UGameConstantManager* ConstantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
+	if (ConstantManager != nullptr)
+	{
+		M_BombStock = ConstantManager->GetIntValue(FName("Player.InitialBombs"));
+		M_RedShotLevel = ConstantManager->GetIntValue(FName("Player.InitialRedShotLevel"));
+		M_GreenShotLevel = ConstantManager->GetIntValue(FName("Player.InitialGreenShotLevel"));
+		M_BlueShotLevel = ConstantManager->GetIntValue(FName("Player.InitialBlueShotLevel"));
+	}
 
 	// Get the player controller
 	APlayerController* PlayerController = Cast<APlayerController>(Controller);
@@ -324,7 +334,11 @@ void APlayerCharacter::AddShotLevel(const EShotType ShotType)
 		}
 		else
 		{
-			GameMode->AddScore(100);
+			UGameConstantManager* ConstantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
+			if (ConstantManager != nullptr)
+			{
+				GameMode->AddScore(ConstantManager->GetIntValue(FName("Score.ItemGet")));
+			}
 		}
 		break;
 	case EShotType::Green:
@@ -334,7 +348,11 @@ void APlayerCharacter::AddShotLevel(const EShotType ShotType)
 		}
 		else
 		{
-			GameMode->AddScore(100);
+			UGameConstantManager* ConstantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
+			if (ConstantManager != nullptr)
+			{
+				GameMode->AddScore(ConstantManager->GetIntValue(FName("Score.ItemGet")));
+			}
 		}
 		break;
 	case EShotType::Blue:
@@ -344,7 +362,11 @@ void APlayerCharacter::AddShotLevel(const EShotType ShotType)
 		}
 		else
 		{
-			GameMode->AddScore(100);
+			UGameConstantManager* ConstantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
+			if (ConstantManager != nullptr)
+			{
+				GameMode->AddScore(ConstantManager->GetIntValue(FName("Score.ItemGet")));
+			}
 		}
 		break;
 	}

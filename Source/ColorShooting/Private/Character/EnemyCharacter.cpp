@@ -2,6 +2,7 @@
 #include "Bullet/Bullet.h"
 #include "ColorShootingGameMode.h"
 #include "Kismet/GameplayStatics.h"
+#include "Subsystem/GameConstantManager.h"
 
 AEnemyCharacter::AEnemyCharacter()
 {
@@ -39,8 +40,13 @@ void AEnemyCharacter::OnDeath()
 	AColorShootingGameMode* GameMode = Cast<AColorShootingGameMode>(UGameplayStatics::GetGameMode(this));
 	if (GameMode != nullptr)
 	{
-		const int32 Score = bKilledByReflectedBullet ? 500 : 100;
-		GameMode->AddScore(Score);
+		UGameConstantManager* ConstantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
+		if (ConstantManager != nullptr)
+		{
+			const FName ScoreId = bKilledByReflectedBullet ? FName("Score.EnemyKillReflected") : FName("Score.EnemyKill");
+			const int32 Score = ConstantManager->GetIntValue(ScoreId);
+			GameMode->AddScore(Score);
+		}
 	}
 
 	Super::OnDeath();

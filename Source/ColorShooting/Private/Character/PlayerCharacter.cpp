@@ -28,6 +28,8 @@ void APlayerCharacter::BeginPlay()
 		M_RedShotLevel = ConstantManager->GetIntValue(FName("Player.InitialRedShotLevel"));
 		M_GreenShotLevel = ConstantManager->GetIntValue(FName("Player.InitialGreenShotLevel"));
 		M_BlueShotLevel = ConstantManager->GetIntValue(FName("Player.InitialBlueShotLevel"));
+		M_MaxShotLevel = ConstantManager->GetIntValue(FName("Player.MaxShotLevel"));
+		M_MaxBombStock = ConstantManager->GetIntValue(FName("Player.MaxBombs"));
 	}
 
 	// Get the player controller
@@ -314,7 +316,24 @@ void APlayerCharacter::ChangeWeapon(const FInputActionValue& Value)
 
 void APlayerCharacter::AddBomb()
 {
-	M_BombStock++;
+	if (M_BombStock < M_MaxBombStock)
+	{
+		M_BombStock++;
+	}
+	else
+	{
+		AColorShootingGameMode* GameMode = Cast<AColorShootingGameMode>(UGameplayStatics::GetGameMode(this));
+		if (GameMode == nullptr)
+		{
+			return;
+		}
+
+		UGameConstantManager* ConstantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
+		if (ConstantManager != nullptr)
+		{
+			GameMode->AddScore(ConstantManager->GetIntValue(FName("Score.ItemGet")));
+		}
+	}
 }
 
 void APlayerCharacter::AddShotLevel(const EShotType ShotType)
@@ -328,7 +347,7 @@ void APlayerCharacter::AddShotLevel(const EShotType ShotType)
 	switch (ShotType)
 	{
 	case EShotType::Red:
-		if (M_RedShotLevel < 5)
+		if (M_RedShotLevel < M_MaxShotLevel)
 		{
 			M_RedShotLevel++;
 		}
@@ -342,7 +361,7 @@ void APlayerCharacter::AddShotLevel(const EShotType ShotType)
 		}
 		break;
 	case EShotType::Green:
-		if (M_GreenShotLevel < 5)
+		if (M_GreenShotLevel < M_MaxShotLevel)
 		{
 			M_GreenShotLevel++;
 		}
@@ -356,7 +375,7 @@ void APlayerCharacter::AddShotLevel(const EShotType ShotType)
 		}
 		break;
 	case EShotType::Blue:
-		if (M_BlueShotLevel < 5)
+		if (M_BlueShotLevel < M_MaxShotLevel)
 		{
 			M_BlueShotLevel++;
 		}

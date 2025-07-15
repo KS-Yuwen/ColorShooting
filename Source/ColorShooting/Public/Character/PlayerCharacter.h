@@ -105,6 +105,14 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
 	int32 M_BlueShotLevel = 0;
 
+	/** Max level of the shot */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
+	int32 M_MaxShotLevel = 0;
+
+	/** Max number of bombs in stock */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
+	int32 M_MaxBombStock = 0;
+
 private:
 	/** Timestamp of the last green shot fire */
 	double M_LastGreenShotTime = 0.0;

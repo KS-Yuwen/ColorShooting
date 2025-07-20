@@ -9,6 +9,7 @@
 #include "Bullet/GreenBullet.h"
 #include "Character/EnemyCharacter.h"
 #include "Subsystem/BulletPoolSubsystem.h"
+#include "Subsystem/EnemyManagerSubsystem.h"
 #include "InputActionValue.h"
 #include "Subsystem/GameConstantManager.h"
 #include "UObject/ConstructorHelpers.h"
@@ -210,25 +211,17 @@ void APlayerCharacter::FireGreenShot()
 	UBulletPoolSubsystem *BulletPoolSubsystem = GetGameInstance()->GetSubsystem<UBulletPoolSubsystem>();
 	if (BulletPoolSubsystem == nullptr)
 	{
+		return;
+	}
 
+	UEnemyManagerSubsystem* EnemyManager = GetGameInstance()->GetSubsystem<UEnemyManagerSubsystem>();
+	if (EnemyManager == nullptr)
+	{
 		return;
 	}
 
 	// Find the closest enemy
-	TArray<AActor *> FoundEnemies;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemyCharacter::StaticClass(), FoundEnemies);
-	AActor *ClosestEnemy = nullptr;
-	float MinDistance = TNumericLimits<float>::Max();
-
-	for (AActor *Enemy : FoundEnemies)
-	{
-		const float Distance = GetDistanceTo(Enemy);
-		if (Distance < MinDistance)
-		{
-			MinDistance = Distance;
-			ClosestEnemy = Enemy;
-		}
-	}
+	AActor *ClosestEnemy = EnemyManager->GetClosestEnemy(GetActorLocation());
 
 	FRotator SpawnRotation = ClosestEnemy ? (ClosestEnemy->GetActorLocation() - GetActorLocation()).Rotation() : GetControlRotation();
 

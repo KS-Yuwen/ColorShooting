@@ -116,4 +116,16 @@ private:
 private:
 	/** Timestamp of the last green shot fire */
 	double M_LastGreenShotTime = 0.0;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
+	TSubclassOf<class ABullet> M_PlayerBulletBP;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
+	TSubclassOf<class AGreenBullet> M_PlayerBulletGreenBP;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
+	TObjectPtr<class UMaterialInterface> M_RedBulletMaterial;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
+	TObjectPtr<class UMaterialInterface> M_BlueBulletMaterial;
 };

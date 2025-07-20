@@ -3,6 +3,7 @@
 #include "ColorShootingGameMode.h"
 #include "Kismet/GameplayStatics.h"
 #include "Subsystem/GameConstantManager.h"
+#include "Subsystem/EnemyManagerSubsystem.h"
 
 AEnemyCharacter::AEnemyCharacter()
 {
@@ -12,6 +13,23 @@ AEnemyCharacter::AEnemyCharacter()
 void AEnemyCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	// Register with the EnemyManagerSubsystem
+	if (UEnemyManagerSubsystem* EnemyManager = GetWorld()->GetGameInstance()->GetSubsystem<UEnemyManagerSubsystem>())
+	{
+		EnemyManager->RegisterEnemy(this);
+	}
+}
+
+void AEnemyCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	// Unregister from the EnemyManagerSubsystem
+	if (UEnemyManagerSubsystem* EnemyManager = GetWorld()->GetGameInstance()->GetSubsystem<UEnemyManagerSubsystem>())
+	{
+		EnemyManager->UnregisterEnemy(this);
+	}
+
+	Super::EndPlay(EndPlayReason);
 }
 
 void AEnemyCharacter::Tick(float DeltaTime)

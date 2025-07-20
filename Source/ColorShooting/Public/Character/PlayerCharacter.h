@@ -10,6 +10,7 @@
 struct FInputActionValue;
 class UInputMappingContext;
 class UInputAction;
+class ABullet;
 
 // Player character class
 UCLASS()
@@ -83,6 +84,16 @@ private:
 	void FireGreenShot();
 	// Fires the blue shot type
 	void FireBlueShot();
+
+	/**
+	 * @brief Initializes and activates a bullet with the given parameters.
+	 * @param NewBullet The bullet actor to initialize.
+	 * @param SpawnLocation The location to spawn the bullet.
+	 * @param SpawnRotation The rotation of the bullet.
+	 * @param BulletMaterial The material to apply to the bullet (optional).
+	 * @param ShotType The shot type of the bullet (optional).
+	 */
+	void InitializeAndActivateBullet(ABullet* NewBullet, const FVector& SpawnLocation, const FRotator& SpawnRotation, UMaterialInterface* BulletMaterial = nullptr, EShotType ShotType = EShotType::Max);
 
 private:
 	/** Current number of bombs in stock */

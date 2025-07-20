@@ -18,7 +18,7 @@ public:
     virtual void Deinitialize() override;
 
     UFUNCTION(BlueprintCallable, Category = "Bullet Pool")
-    AActor* GetBulletFromPool();
+    AActor* GetBulletFromPool(TSubclassOf<ABullet> BulletClass);
 
     UFUNCTION(BlueprintCallable, Category = "Bullet Pool")
     void ReturnBulletToPool(AActor* Bullet);

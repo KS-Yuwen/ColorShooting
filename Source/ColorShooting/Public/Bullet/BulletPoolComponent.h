@@ -3,7 +3,18 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Bullet/Bullet.h"
 #include "BulletPoolComponent.generated.h"
+
+USTRUCT()
+struct FBulletArray
+{
+    GENERATED_BODY()
+
+public:
+    UPROPERTY()
+    TArray<TObjectPtr<ABullet>> Bullets;
+};
 
 class ABullet;
 
@@ -19,11 +30,11 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-	ABullet* GetPooledBullet(bool bIsPlayerBullet);
+	ABullet* GetPooledBullet(TSubclassOf<ABullet> BulletClass, bool bIsPlayerBullet);
 	void ReturnBulletToPool(ABullet* Bullet);
 
 private:
-	void CreatePool();
+	void CreatePool(TSubclassOf<ABullet> BulletClass);
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Bullet Pool")
@@ -34,11 +45,11 @@ protected:
 
 private:
 	UPROPERTY()
-	TArray<TObjectPtr<ABullet>> M_BulletPool;
+	TMap<TSubclassOf<ABullet>, FBulletArray> M_BulletPools;
 
 	UPROPERTY()
-	TArray<TObjectPtr<ABullet>> M_PooledPlayerBullets;
+	TMap<TSubclassOf<ABullet>, FBulletArray> M_PooledPlayerBullets;
 
 	UPROPERTY()
-	TArray<TObjectPtr<ABullet>> M_PooledEnemyBullets;
+	TMap<TSubclassOf<ABullet>, FBulletArray> M_PooledEnemyBullets;
 };

@@ -145,16 +145,22 @@ void APlayerCharacter::FireRedShot()
 		return;
 	}
 
+	UBulletPoolSubsystem* BulletPoolSubsystem = GetGameInstance()->GetSubsystem<UBulletPoolSubsystem>();
+	if (BulletPoolSubsystem == nullptr)
+	{
+		return;
+	}
+
 	const FRotator SpawnRotation = M_Muzzle->GetComponentRotation();
 	const FVector SpawnLocation = M_Muzzle->GetComponentLocation();
 
 	if (M_RedShotLevel == 1)
 	{
 		// Level 1: Fire a single bullet
-		if (ABullet* NewBullet = GetWorld()->SpawnActor<ABullet>(M_PlayerBulletBP, SpawnLocation, SpawnRotation))
+		if (ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP)))
 		{
+			NewBullet->SetActorLocationAndRotation(SpawnLocation, SpawnRotation);
 			NewBullet->M_BulletMeshComponent->SetMaterial(0, M_RedBulletMaterial);
-			NewBullet->bIsPlayerBullet = true;
 			NewBullet->SetActive(true);
 		}
 	}
@@ -170,10 +176,10 @@ void APlayerCharacter::FireRedShot()
 		for (int32 i = 0; i < NumBullets; ++i)
 		{
 			const FVector CurrentSpawnLocation = StartLocation + (RightVector * i * BulletSpacing);
-			if (ABullet* NewBullet = GetWorld()->SpawnActor<ABullet>(M_PlayerBulletBP, CurrentSpawnLocation, SpawnRotation))
+			if (ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP)))
 			{
+				NewBullet->SetActorLocationAndRotation(CurrentSpawnLocation, SpawnRotation);
 				NewBullet->M_BulletMeshComponent->SetMaterial(0, M_RedBulletMaterial);
-				NewBullet->bIsPlayerBullet = true;
 				NewBullet->SetActive(true);
 			}
 		}
@@ -205,6 +211,12 @@ void APlayerCharacter::FireGreenShot()
 	}
 	M_LastGreenShotTime = CurrentTime;
 
+	UBulletPoolSubsystem* BulletPoolSubsystem = GetGameInstance()->GetSubsystem<UBulletPoolSubsystem>();
+	if (BulletPoolSubsystem == nullptr)
+	{
+		return;
+	}
+
 	// Find the closest enemy
 	TArray<AActor*> FoundEnemies;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemyCharacter::StaticClass(), FoundEnemies);
@@ -222,6 +234,7 @@ void APlayerCharacter::FireGreenShot()
 	}
 
 	FRotator SpawnRotation = ClosestEnemy ? (ClosestEnemy->GetActorLocation() - GetActorLocation()).Rotation() : GetControlRotation();
+
 	const FVector SpawnLocation = M_Muzzle->GetComponentLocation();
 
 	// Determine number of bullets based on level
@@ -237,14 +250,10 @@ void APlayerCharacter::FireGreenShot()
 
 	for (int32 i = 0; i < NumBullets; ++i)
 	{
-		if (AGreenBullet* NewBullet = GetWorld()->SpawnActor<AGreenBullet>(M_PlayerBulletGreenBP, SpawnLocation, SpawnRotation))
+		if (AGreenBullet* NewBullet = Cast<AGreenBullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletGreenBP)))
 		{
-			NewBullet->bIsPlayerBullet = true;
-			NewBullet->M_ShotType = EShotType::Green;
-			if (ClosestEnemy)
-			{
-				NewBullet->SetTarget(ClosestEnemy);
-			}
+			NewBullet->SetActorLocationAndRotation(SpawnLocation, SpawnRotation);
+			NewBullet->SetTarget(ClosestEnemy);
 			NewBullet->SetActive(true);
 		}
 	}
@@ -257,6 +266,12 @@ void APlayerCharacter::FireBlueShot()
 		return;
 	}
 
+	UBulletPoolSubsystem* BulletPoolSubsystem = GetGameInstance()->GetSubsystem<UBulletPoolSubsystem>();
+	if (BulletPoolSubsystem == nullptr)
+	{
+		return;
+	}
+
 	const FVector SpawnLocation = M_Muzzle->GetComponentLocation();
 	const FRotator BaseRotation = M_Muzzle->GetComponentRotation();
 	const int32 NumBullets = (M_BlueShotLevel * 2) - 1;
@@ -264,10 +279,10 @@ void APlayerCharacter::FireBlueShot()
 	if (NumBullets <= 1)
 	{
 		// Level 1: Fire a single bullet forward
-		if (ABullet* NewBullet = GetWorld()->SpawnActor<ABullet>(M_PlayerBulletBP, SpawnLocation, BaseRotation))
+		if (ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP)))
 		{
+			NewBullet->SetActorLocationAndRotation(SpawnLocation, BaseRotation);
 			NewBullet->M_BulletMeshComponent->SetMaterial(0, M_BlueBulletMaterial);
-			NewBullet->bIsPlayerBullet = true;
 			NewBullet->M_ShotType = EShotType::Blue;
 			NewBullet->SetActive(true);
 		}
@@ -283,10 +298,10 @@ void APlayerCharacter::FireBlueShot()
 		{
 			const float CurrentAngle = StartAngle + (i * AngleStep);
 			const FRotator SpawnRotation = BaseRotation + FRotator(0.0f, CurrentAngle, 0.0f);
-			if (ABullet* NewBullet = GetWorld()->SpawnActor<ABullet>(M_PlayerBulletBP, SpawnLocation, SpawnRotation))
+			if (ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP)))
 			{
+				NewBullet->SetActorLocationAndRotation(SpawnLocation, SpawnRotation);
 				NewBullet->M_BulletMeshComponent->SetMaterial(0, M_BlueBulletMaterial);
-				NewBullet->bIsPlayerBullet = true;
 				NewBullet->M_ShotType = EShotType::Blue;
 				NewBullet->SetActive(true);
 			}

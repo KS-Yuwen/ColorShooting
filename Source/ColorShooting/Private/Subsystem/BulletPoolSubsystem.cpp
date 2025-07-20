@@ -18,11 +18,11 @@ void UBulletPoolSubsystem::Deinitialize()
     Super::Deinitialize();
 }
 
-AActor* UBulletPoolSubsystem::GetBulletFromPool()
+AActor* UBulletPoolSubsystem::GetBulletFromPool(TSubclassOf<ABullet> BulletClass)
 {
     if (M_BulletPoolComponent)
     {
-        return M_BulletPoolComponent->GetPooledBullet(true);
+        return M_BulletPoolComponent->GetPooledBullet(BulletClass, true);
     }
     return nullptr;
 }

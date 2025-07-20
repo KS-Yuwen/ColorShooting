@@ -6,6 +6,7 @@
 #include "Character/EnemyCharacter.h"
 #include "Components/StaticMeshComponent.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 ABullet::ABullet()
@@ -18,6 +19,9 @@ ABullet::ABullet()
 	M_CollisionComponent->InitSphereRadius(5.0f);
 	M_CollisionComponent->SetCollisionProfileName(TEXT("Projectile"));
 	M_CollisionComponent->OnComponentHit.AddDynamic(this, &ABullet::OnHit);
+
+	// Enable hit events
+	M_CollisionComponent->SetNotifyRigidBodyCollision(true);
 
 	// Set the sphere's collision profile name to "Projectile"
 	RootComponent = M_CollisionComponent;
@@ -35,9 +39,7 @@ ABullet::ABullet()
 		if (BulletMaterialAsset.Succeeded())
 		{
 			M_BulletMeshComponent->SetMaterial(0, BulletMaterialAsset.Object);
-			UE_LOG(LogTemp, Log, TEXT("ABullet: Default material set."));
 		}
-		UE_LOG(LogTemp, Log, TEXT("ABullet: Default mesh set."));
 	}
 	else
 	{
@@ -82,6 +84,11 @@ void ABullet::SetActive(bool bIsActive)
 
 	if (bIsActive)
 	{
+		// When re-enabling collision, we must restore the collision profile.
+		if (M_CollisionComponent)
+		{
+			M_CollisionComponent->SetCollisionProfileName(TEXT("Projectile"));
+		}
 		M_ProjectileMovementComponent->Activate();
 	}
 	else
@@ -116,6 +123,11 @@ void ABullet::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrim
 			M_ProjectileMovementComponent->Velocity = RandomizedReflectionVector.GetSafeNormal() * M_ProjectileMovementComponent->InitialSpeed;
 			bWasReflected = true;
 			return; // Don't destroy the bullet
+		}
+		else
+		{
+			// Apply damage to the enemy
+			UGameplayStatics::ApplyDamage(EnemyCharacter, Damage, GetInstigatorController(), this, UDamageType::StaticClass());
 		}
 	}
 

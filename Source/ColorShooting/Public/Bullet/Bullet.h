@@ -11,8 +11,8 @@ UCLASS()
 class COLORSHOOTING_API ABullet : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	ABullet();
 
@@ -20,11 +20,17 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	void SetActive(bool bIsActive);
+
+	/**
+	 * @brief Sets the direction of the bullet's movement.
+	 * @param Direction The direction vector for the bullet.
+	 */
+	void SetDirection(const FVector &Direction);
 
 	// Static mesh component for the bullet's appearance
 	UPROPERTY(VisibleDefaultsOnly, Category = "Projectile")
@@ -52,5 +58,5 @@ public:
 
 	// Function that is called when the projectile hits something.
 	UFUNCTION()
-	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
+	void OnHit(UPrimitiveComponent *HitComponent, AActor *OtherActor, UPrimitiveComponent *OtherComponent, FVector NormalImpulse, const FHitResult &Hit);
 };

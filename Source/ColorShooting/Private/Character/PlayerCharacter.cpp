@@ -47,7 +47,7 @@ void APlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UGameConstantManager* ConstantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
+	UGameConstantManager *ConstantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
 	if (ConstantManager != nullptr)
 	{
 		M_BombStock = ConstantManager->GetIntValue(FName("Player.InitialBombs"));
@@ -59,14 +59,14 @@ void APlayerCharacter::BeginPlay()
 	}
 
 	// Get the player controller
-	APlayerController* PlayerController = Cast<APlayerController>(Controller);
+	APlayerController *PlayerController = Cast<APlayerController>(Controller);
 	if (PlayerController == nullptr)
 	{
 		return;
 	}
 
 	// Get the Enhanced Input local player subsystem
-	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
+	UEnhancedInputLocalPlayerSubsystem *Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
 	if (Subsystem == nullptr)
 	{
 		return;
@@ -81,12 +81,12 @@ void APlayerCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void APlayerCharacter::SetupPlayerInputComponent(UInputComponent *PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	// Cast to Enhanced Input Component
-	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
+	UEnhancedInputComponent *EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
 	if (EnhancedInputComponent == nullptr)
 	{
 		return;
@@ -100,7 +100,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	EnhancedInputComponent->BindAction(M_ChangeWeaponAction, ETriggerEvent::Triggered, this, &APlayerCharacter::ChangeWeapon);
 }
 
-void APlayerCharacter::Move(const FInputActionValue& Value)
+void APlayerCharacter::Move(const FInputActionValue &Value)
 {
 	if (Controller == nullptr)
 	{
@@ -111,7 +111,7 @@ void APlayerCharacter::Move(const FInputActionValue& Value)
 	AddMovementInput(GetActorRightVector(), MovementVector.X);
 }
 
-void APlayerCharacter::Look(const FInputActionValue& Value)
+void APlayerCharacter::Look(const FInputActionValue &Value)
 {
 	if (Controller == nullptr)
 	{
@@ -122,7 +122,7 @@ void APlayerCharacter::Look(const FInputActionValue& Value)
 	AddControllerPitchInput(LookAxisVector.Y);
 }
 
-void APlayerCharacter::Fire(const FInputActionValue& Value)
+void APlayerCharacter::Fire(const FInputActionValue &Value)
 {
 	switch (M_CurrentShotType)
 	{
@@ -145,7 +145,7 @@ void APlayerCharacter::FireRedShot()
 		return;
 	}
 
-	UBulletPoolSubsystem* BulletPoolSubsystem = GetGameInstance()->GetSubsystem<UBulletPoolSubsystem>();
+	UBulletPoolSubsystem *BulletPoolSubsystem = GetGameInstance()->GetSubsystem<UBulletPoolSubsystem>();
 	if (BulletPoolSubsystem == nullptr)
 	{
 		return;
@@ -157,11 +157,12 @@ void APlayerCharacter::FireRedShot()
 	if (M_RedShotLevel == 1)
 	{
 		// Level 1: Fire a single bullet
-		if (ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP, true)))
+		if (ABullet *NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP, true)))
 		{
 			NewBullet->SetActorLocationAndRotation(SpawnLocation, SpawnRotation);
 			NewBullet->M_BulletMeshComponent->SetMaterial(0, M_RedBulletMaterial);
 			NewBullet->SetActive(true);
+			NewBullet->SetDirection(SpawnRotation.Vector());
 		}
 	}
 	else
@@ -176,12 +177,12 @@ void APlayerCharacter::FireRedShot()
 		for (int32 i = 0; i < NumBullets; ++i)
 		{
 			const FVector CurrentSpawnLocation = StartLocation + (RightVector * i * BulletSpacing);
-			if (ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP, true)))
+			if (ABullet *NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP, true)))
 			{
 				NewBullet->SetActorLocationAndRotation(CurrentSpawnLocation, SpawnRotation);
 				NewBullet->M_BulletMeshComponent->SetMaterial(0, M_RedBulletMaterial);
 				NewBullet->SetActive(true);
-	
+				NewBullet->SetDirection(SpawnRotation.Vector());
 			}
 		}
 	}
@@ -212,20 +213,20 @@ void APlayerCharacter::FireGreenShot()
 	}
 	M_LastGreenShotTime = CurrentTime;
 
-	UBulletPoolSubsystem* BulletPoolSubsystem = GetGameInstance()->GetSubsystem<UBulletPoolSubsystem>();
+	UBulletPoolSubsystem *BulletPoolSubsystem = GetGameInstance()->GetSubsystem<UBulletPoolSubsystem>();
 	if (BulletPoolSubsystem == nullptr)
 	{
-		
+
 		return;
 	}
 
 	// Find the closest enemy
-	TArray<AActor*> FoundEnemies;
+	TArray<AActor *> FoundEnemies;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemyCharacter::StaticClass(), FoundEnemies);
-	AActor* ClosestEnemy = nullptr;
+	AActor *ClosestEnemy = nullptr;
 	float MinDistance = TNumericLimits<float>::Max();
 
-	for (AActor* Enemy : FoundEnemies)
+	for (AActor *Enemy : FoundEnemies)
 	{
 		const float Distance = GetDistanceTo(Enemy);
 		if (Distance < MinDistance)
@@ -252,7 +253,7 @@ void APlayerCharacter::FireGreenShot()
 
 	for (int32 i = 0; i < NumBullets; ++i)
 	{
-		if (AGreenBullet* NewBullet = Cast<AGreenBullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletGreenBP, true)))
+		if (AGreenBullet *NewBullet = Cast<AGreenBullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletGreenBP, true)))
 		{
 			NewBullet->SetActorLocationAndRotation(SpawnLocation, SpawnRotation);
 			if (ClosestEnemy)
@@ -260,7 +261,6 @@ void APlayerCharacter::FireGreenShot()
 				NewBullet->SetTarget(ClosestEnemy);
 			}
 			NewBullet->SetActive(true);
-			
 		}
 	}
 }
@@ -272,7 +272,7 @@ void APlayerCharacter::FireBlueShot()
 		return;
 	}
 
-	UBulletPoolSubsystem* BulletPoolSubsystem = GetGameInstance()->GetSubsystem<UBulletPoolSubsystem>();
+	UBulletPoolSubsystem *BulletPoolSubsystem = GetGameInstance()->GetSubsystem<UBulletPoolSubsystem>();
 	if (BulletPoolSubsystem == nullptr)
 	{
 		return;
@@ -285,13 +285,13 @@ void APlayerCharacter::FireBlueShot()
 	if (NumBullets <= 1)
 	{
 		// Level 1: Fire a single bullet forward
-		if (ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP, true)))
+		if (ABullet *NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP, true)))
 		{
 			NewBullet->SetActorLocationAndRotation(SpawnLocation, BaseRotation);
 			NewBullet->M_BulletMeshComponent->SetMaterial(0, M_BlueBulletMaterial);
 			NewBullet->M_ShotType = EShotType::Blue;
 			NewBullet->SetActive(true);
-			
+			NewBullet->SetDirection(BaseRotation.Vector());
 		}
 	}
 	else
@@ -305,19 +305,19 @@ void APlayerCharacter::FireBlueShot()
 		{
 			const float CurrentAngle = StartAngle + (i * AngleStep);
 			const FRotator SpawnRotation = BaseRotation + FRotator(0.0f, CurrentAngle, 0.0f);
-			if (ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP, true)))
+			if (ABullet *NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP, true)))
 			{
 				NewBullet->SetActorLocationAndRotation(SpawnLocation, SpawnRotation);
 				NewBullet->M_BulletMeshComponent->SetMaterial(0, M_BlueBulletMaterial);
 				NewBullet->M_ShotType = EShotType::Blue;
 				NewBullet->SetActive(true);
-				
+				NewBullet->SetDirection(SpawnRotation.Vector());
 			}
 		}
 	}
 }
 
-void APlayerCharacter::Bomb(const FInputActionValue& Value)
+void APlayerCharacter::Bomb(const FInputActionValue &Value)
 {
 	if (M_BombStock <= 0)
 	{
@@ -328,7 +328,7 @@ void APlayerCharacter::Bomb(const FInputActionValue& Value)
 	UE_LOG(LogTemp, Log, TEXT("Fired Bomb!"));
 }
 
-void APlayerCharacter::ChangeWeapon(const FInputActionValue& Value)
+void APlayerCharacter::ChangeWeapon(const FInputActionValue &Value)
 {
 	UE_LOG(LogTemp, Log, TEXT("Changed Weapon!"));
 	switch (M_CurrentShotType)
@@ -353,13 +353,13 @@ void APlayerCharacter::AddBomb()
 	}
 	else
 	{
-		AColorShootingGameMode* GameMode = Cast<AColorShootingGameMode>(UGameplayStatics::GetGameMode(this));
+		AColorShootingGameMode *GameMode = Cast<AColorShootingGameMode>(UGameplayStatics::GetGameMode(this));
 		if (GameMode == nullptr)
 		{
 			return;
 		}
 
-		UGameConstantManager* ConstantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
+		UGameConstantManager *ConstantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
 		if (ConstantManager != nullptr)
 		{
 			GameMode->AddScore(ConstantManager->GetIntValue(FName("Score.ItemGet")));
@@ -369,7 +369,7 @@ void APlayerCharacter::AddBomb()
 
 void APlayerCharacter::AddShotLevel(const EShotType ShotType)
 {
-	AColorShootingGameMode* GameMode = Cast<AColorShootingGameMode>(UGameplayStatics::GetGameMode(this));
+	AColorShootingGameMode *GameMode = Cast<AColorShootingGameMode>(UGameplayStatics::GetGameMode(this));
 	if (GameMode == nullptr)
 	{
 		return;
@@ -384,7 +384,7 @@ void APlayerCharacter::AddShotLevel(const EShotType ShotType)
 		}
 		else
 		{
-			UGameConstantManager* ConstantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
+			UGameConstantManager *ConstantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
 			if (ConstantManager != nullptr)
 			{
 				GameMode->AddScore(ConstantManager->GetIntValue(FName("Score.ItemGet")));
@@ -398,7 +398,7 @@ void APlayerCharacter::AddShotLevel(const EShotType ShotType)
 		}
 		else
 		{
-			UGameConstantManager* ConstantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
+			UGameConstantManager *ConstantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
 			if (ConstantManager != nullptr)
 			{
 				GameMode->AddScore(ConstantManager->GetIntValue(FName("Score.ItemGet")));
@@ -412,7 +412,7 @@ void APlayerCharacter::AddShotLevel(const EShotType ShotType)
 		}
 		else
 		{
-			UGameConstantManager* ConstantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
+			UGameConstantManager *ConstantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
 			if (ConstantManager != nullptr)
 			{
 				GameMode->AddScore(ConstantManager->GetIntValue(FName("Score.ItemGet")));
@@ -421,4 +421,3 @@ void APlayerCharacter::AddShotLevel(const EShotType ShotType)
 		break;
 	}
 }
-

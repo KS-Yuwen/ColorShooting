@@ -56,6 +56,10 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Bullet")
 	EShotType M_ShotType;
 
+	/** The amount of damage this bullet inflicts. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bullet", meta = (ClampMin = "0.0"))
+	float Damage = 1.0f;
+
 	// Function that is called when the projectile hits something.
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent *HitComponent, AActor *OtherActor, UPrimitiveComponent *OtherComponent, FVector NormalImpulse, const FHitResult &Hit);

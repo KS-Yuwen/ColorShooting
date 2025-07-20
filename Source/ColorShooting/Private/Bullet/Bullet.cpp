@@ -4,6 +4,8 @@
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Character/EnemyCharacter.h"
+#include "Components/StaticMeshComponent.h"
+#include "UObject/ConstructorHelpers.h"
 
 // Sets default values
 ABullet::ABullet()
@@ -19,6 +21,24 @@ ABullet::ABullet()
 
 	// Set the sphere's collision profile name to "Projectile"
 	RootComponent = M_CollisionComponent;
+
+	// Add a static mesh component for the bullet's appearance
+	M_BulletMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BulletMeshComponent"));
+	M_BulletMeshComponent->SetupAttachment(RootComponent);
+
+	// Set a default mesh and material
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> BulletMeshAsset(TEXT("/Engine/BasicShapes/Sphere"));
+	if (BulletMeshAsset.Succeeded())
+	{
+		M_BulletMeshComponent->SetStaticMesh(BulletMeshAsset.Object);
+		static ConstructorHelpers::FObjectFinder<UMaterial> BulletMaterialAsset(TEXT("/Engine/BasicShapes/BasicShapeMaterial"));
+		if (BulletMaterialAsset.Succeeded())
+		{
+			M_BulletMeshComponent->SetMaterial(0, BulletMaterialAsset.Object);
+		}
+	}
+	M_BulletMeshComponent->SetRelativeScale3D(FVector(0.1f, 0.1f, 0.1f));
+
 
 	// Use this component to drive this projectile's movement.
 	M_ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));

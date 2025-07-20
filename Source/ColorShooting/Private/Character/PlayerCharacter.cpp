@@ -124,8 +124,7 @@ void APlayerCharacter::Look(const FInputActionValue& Value)
 
 void APlayerCharacter::Fire(const FInputActionValue& Value)
 {
-	UE_LOG(LogTemp, Log, TEXT("Fire!"));
-
+	UE_LOG(LogTemp, Log, TEXT("APlayerCharacter::Fire() called."));
 	switch (M_CurrentShotType)
 	{
 	case EShotType::Red:
@@ -137,19 +136,40 @@ void APlayerCharacter::Fire(const FInputActionValue& Value)
 	case EShotType::Blue:
 		FireBlueShot();
 		break;
+	default:
+		UE_LOG(LogTemp, Warning, TEXT("APlayerCharacter::Fire - Unhandled M_CurrentShotType value: %d"), static_cast<uint8>(M_CurrentShotType));
+		break;
 	}
 }
 
 void APlayerCharacter::FireRedShot()
 {
-	if (M_RedShotLevel <= 0 || M_Muzzle == nullptr || M_PlayerBulletBP == nullptr || M_RedBulletMaterial == nullptr)
+	UE_LOG(LogTemp, Log, TEXT("FireRedShot() entered."));
+	if (M_RedShotLevel <= 0)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("FireRedShot: Shot level is 0."));
+		return;
+	}
+	if (M_Muzzle == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("FireRedShot: Muzzle is null."));
+		return;
+	}
+	if (M_PlayerBulletBP == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("FireRedShot: PlayerBulletBP is null."));
+		return;
+	}
+	if (M_RedBulletMaterial == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("FireRedShot: RedBulletMaterial is null."));
 		return;
 	}
 
 	UBulletPoolSubsystem* BulletPoolSubsystem = GetGameInstance()->GetSubsystem<UBulletPoolSubsystem>();
 	if (BulletPoolSubsystem == nullptr)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("FireRedShot: BulletPoolSubsystem is null."));
 		return;
 	}
 
@@ -159,11 +179,12 @@ void APlayerCharacter::FireRedShot()
 	if (M_RedShotLevel == 1)
 	{
 		// Level 1: Fire a single bullet
-		if (ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP)))
+		if (ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP, true)))
 		{
 			NewBullet->SetActorLocationAndRotation(SpawnLocation, SpawnRotation);
 			NewBullet->M_BulletMeshComponent->SetMaterial(0, M_RedBulletMaterial);
 			NewBullet->SetActive(true);
+			UE_LOG(LogTemp, Log, TEXT("Fired Red Bullet!"));
 		}
 	}
 	else
@@ -178,11 +199,12 @@ void APlayerCharacter::FireRedShot()
 		for (int32 i = 0; i < NumBullets; ++i)
 		{
 			const FVector CurrentSpawnLocation = StartLocation + (RightVector * i * BulletSpacing);
-			if (ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP)))
+			if (ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP, true)))
 			{
 				NewBullet->SetActorLocationAndRotation(CurrentSpawnLocation, SpawnRotation);
 				NewBullet->M_BulletMeshComponent->SetMaterial(0, M_RedBulletMaterial);
 				NewBullet->SetActive(true);
+				UE_LOG(LogTemp, Log, TEXT("Fired Red Bullet!"));
 			}
 		}
 	}
@@ -190,8 +212,20 @@ void APlayerCharacter::FireRedShot()
 
 void APlayerCharacter::FireGreenShot()
 {
-	if (M_GreenShotLevel <= 0 || M_Muzzle == nullptr || M_PlayerBulletGreenBP == nullptr)
+	UE_LOG(LogTemp, Log, TEXT("FireGreenShot() entered."));
+	if (M_GreenShotLevel <= 0)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("FireGreenShot: Shot level is 0."));
+		return;
+	}
+	if (M_Muzzle == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("FireGreenShot: Muzzle is null."));
+		return;
+	}
+	if (M_PlayerBulletGreenBP == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("FireGreenShot: PlayerBulletGreenBP is null."));
 		return;
 	}
 
@@ -216,6 +250,7 @@ void APlayerCharacter::FireGreenShot()
 	UBulletPoolSubsystem* BulletPoolSubsystem = GetGameInstance()->GetSubsystem<UBulletPoolSubsystem>();
 	if (BulletPoolSubsystem == nullptr)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("FireGreenShot: BulletPoolSubsystem is null."));
 		return;
 	}
 
@@ -252,25 +287,44 @@ void APlayerCharacter::FireGreenShot()
 
 	for (int32 i = 0; i < NumBullets; ++i)
 	{
-		if (AGreenBullet* NewBullet = Cast<AGreenBullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletGreenBP)))
+		if (AGreenBullet* NewBullet = Cast<AGreenBullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletGreenBP, true)))
 		{
 			NewBullet->SetActorLocationAndRotation(SpawnLocation, SpawnRotation);
 			NewBullet->SetTarget(ClosestEnemy);
 			NewBullet->SetActive(true);
+			UE_LOG(LogTemp, Log, TEXT("Fired Green Bullet!"));
 		}
 	}
 }
 
 void APlayerCharacter::FireBlueShot()
 {
-	if (M_BlueShotLevel <= 0 || M_Muzzle == nullptr || M_PlayerBulletBP == nullptr || M_BlueBulletMaterial == nullptr)
+	UE_LOG(LogTemp, Log, TEXT("FireBlueShot() entered."));
+	if (M_BlueShotLevel <= 0)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("FireBlueShot: Shot level is 0."));
+		return;
+	}
+	if (M_Muzzle == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("FireBlueShot: Muzzle is null."));
+		return;
+	}
+	if (M_PlayerBulletBP == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("FireBlueShot: PlayerBulletBP is null."));
+		return;
+	}
+	if (M_BlueBulletMaterial == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("FireBlueShot: BlueBulletMaterial is null."));
 		return;
 	}
 
 	UBulletPoolSubsystem* BulletPoolSubsystem = GetGameInstance()->GetSubsystem<UBulletPoolSubsystem>();
 	if (BulletPoolSubsystem == nullptr)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("FireBlueShot: BulletPoolSubsystem is null."));
 		return;
 	}
 
@@ -281,12 +335,13 @@ void APlayerCharacter::FireBlueShot()
 	if (NumBullets <= 1)
 	{
 		// Level 1: Fire a single bullet forward
-		if (ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP)))
+		if (ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP, true)))
 		{
 			NewBullet->SetActorLocationAndRotation(SpawnLocation, BaseRotation);
 			NewBullet->M_BulletMeshComponent->SetMaterial(0, M_BlueBulletMaterial);
 			NewBullet->M_ShotType = EShotType::Blue;
 			NewBullet->SetActive(true);
+			UE_LOG(LogTemp, Log, TEXT("Fired Blue Bullet!"));
 		}
 	}
 	else
@@ -300,12 +355,13 @@ void APlayerCharacter::FireBlueShot()
 		{
 			const float CurrentAngle = StartAngle + (i * AngleStep);
 			const FRotator SpawnRotation = BaseRotation + FRotator(0.0f, CurrentAngle, 0.0f);
-			if (ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP)))
+			if (ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP, true)))
 			{
 				NewBullet->SetActorLocationAndRotation(SpawnLocation, SpawnRotation);
 				NewBullet->M_BulletMeshComponent->SetMaterial(0, M_BlueBulletMaterial);
 				NewBullet->M_ShotType = EShotType::Blue;
 				NewBullet->SetActive(true);
+				UE_LOG(LogTemp, Log, TEXT("Fired Blue Bullet!"));
 			}
 		}
 	}

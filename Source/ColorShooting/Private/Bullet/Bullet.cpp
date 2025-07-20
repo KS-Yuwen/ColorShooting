@@ -35,7 +35,13 @@ ABullet::ABullet()
 		if (BulletMaterialAsset.Succeeded())
 		{
 			M_BulletMeshComponent->SetMaterial(0, BulletMaterialAsset.Object);
+			UE_LOG(LogTemp, Log, TEXT("ABullet: Default material set."));
 		}
+		UE_LOG(LogTemp, Log, TEXT("ABullet: Default mesh set."));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ABullet: Failed to set default mesh."));
 	}
 	M_BulletMeshComponent->SetRelativeScale3D(FVector(0.1f, 0.1f, 0.1f));
 
@@ -53,13 +59,15 @@ ABullet::ABullet()
 
 	// Initialize the bullet as not being from the player by default
 	bIsPlayerBullet = false;
+
+	UE_LOG(LogTemp, Log, TEXT("ABullet: Constructor finished."));
 }
 
 // Called when the game starts or when spawned
 void ABullet::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	UE_LOG(LogTemp, Log, TEXT("ABullet: BeginPlay called."));
 }
 
 // Called every frame
@@ -71,6 +79,8 @@ void ABullet::Tick(float DeltaTime)
 
 void ABullet::SetActive(bool bIsActive)
 {
+	UE_LOG(LogTemp, Log, TEXT("ABullet::SetActive called with bIsActive: %s"), bIsActive ? TEXT("true") : TEXT("false"));
+
 	SetActorHiddenInGame(!bIsActive);
 	SetActorEnableCollision(bIsActive);
 	SetActorTickEnabled(bIsActive);
@@ -78,11 +88,23 @@ void ABullet::SetActive(bool bIsActive)
 	if (bIsActive)
 	{
 		M_ProjectileMovementComponent->Activate();
+		UE_LOG(LogTemp, Log, TEXT("ABullet::SetActive: ProjectileMovementComponent activated."));
 	}
 	else
 	{
 		M_ProjectileMovementComponent->Deactivate();
 		SetActorLocation(FVector::ZeroVector);
+		UE_LOG(LogTemp, Log, TEXT("ABullet::SetActive: ProjectileMovementComponent deactivated and moved to origin."));
+	}
+
+	// Check mesh component visibility after setting active state
+	if (M_BulletMeshComponent)
+	{
+		UE_LOG(LogTemp, Log, TEXT("ABullet::SetActive: Mesh component visibility: %s"), M_BulletMeshComponent->IsVisible() ? TEXT("true") : TEXT("false"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ABullet::SetActive: Mesh component is null!"));
 	}
 }
 

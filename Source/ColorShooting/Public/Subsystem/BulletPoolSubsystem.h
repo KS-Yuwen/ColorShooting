@@ -6,7 +6,15 @@
 #include "Bullet/Bullet.h" // ABulletの定義をインクルード
 #include "BulletPoolSubsystem.generated.h"
 
-class UBulletPoolComponent;
+USTRUCT()
+struct FBulletArray
+{
+    GENERATED_BODY()
+
+public:
+    UPROPERTY()
+    TArray<TObjectPtr<ABullet>> Bullets;
+};
 
 UCLASS()
 class COLORSHOOTING_API UBulletPoolSubsystem : public UGameInstanceSubsystem
@@ -18,12 +26,25 @@ public:
     virtual void Deinitialize() override;
 
     UFUNCTION(BlueprintCallable, Category = "Bullet Pool")
-    AActor* GetBulletFromPool(TSubclassOf<ABullet> BulletClass);
+    ABullet* GetBulletFromPool(TSubclassOf<ABullet> BulletClass, bool bIsPlayerBullet);
 
     UFUNCTION(BlueprintCallable, Category = "Bullet Pool")
-    void ReturnBulletToPool(AActor* Bullet);
+    void ReturnBulletToPool(ABullet* Bullet);
 
 private:
-    UPROPERTY()
-    TObjectPtr<UBulletPoolComponent> M_BulletPoolComponent;
+	void CreatePool(TSubclassOf<ABullet> BulletClass);
+
+protected:
+	UPROPERTY(VisibleAnywhere, Category = "Bullet Pool")
+	uint32 M_PoolSize = 20;
+
+private:
+	UPROPERTY()
+	TMap<TSubclassOf<ABullet>, FBulletArray> M_BulletPools;
+
+	UPROPERTY()
+	TMap<TSubclassOf<ABullet>, FBulletArray> M_PooledPlayerBullets;
+
+	UPROPERTY()
+	TMap<TSubclassOf<ABullet>, FBulletArray> M_PooledEnemyBullets;
 };

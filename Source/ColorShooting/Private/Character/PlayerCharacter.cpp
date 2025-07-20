@@ -255,7 +255,10 @@ void APlayerCharacter::FireGreenShot()
 		if (AGreenBullet* NewBullet = Cast<AGreenBullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletGreenBP, true)))
 		{
 			NewBullet->SetActorLocationAndRotation(SpawnLocation, SpawnRotation);
-			NewBullet->SetTarget(ClosestEnemy);
+			if (ClosestEnemy)
+			{
+				NewBullet->SetTarget(ClosestEnemy);
+			}
 			NewBullet->SetActive(true);
 			
 		}

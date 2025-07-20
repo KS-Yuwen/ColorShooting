@@ -29,7 +29,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Bullet Pool")
 	TSubclassOf<ABullet> M_BulletClass;
 
-	UPROPERTY(EditAnywhere, Category = "Bullet Pool")
+	UPROPERTY(VisibleAnywhere, Category = "Bullet Pool")
 	uint32 M_PoolSize = 20;
 
 private:

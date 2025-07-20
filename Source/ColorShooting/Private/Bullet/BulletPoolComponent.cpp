@@ -3,6 +3,8 @@
 #include "Bullet/Bullet.h"
 #include "Engine/World.h"
 #include "UObject/ConstructorHelpers.h"
+#include "Subsystem/GameConstantManager.h"
+#include "Kismet/GameplayStatics.h"
 
 UBulletPoolComponent::UBulletPoolComponent()
 {
@@ -14,13 +16,22 @@ UBulletPoolComponent::UBulletPoolComponent()
 	{
 		M_BulletClass = BulletClassFinder.Class;
 	}
-
-	M_PoolSize = 50; // Default pool size
 }
 
 void UBulletPoolComponent::BeginPlay()
 {
 	Super::BeginPlay();
+
+	UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(GetWorld());
+	if (GameInstance)
+	{
+		UGameConstantManager* ConstantManager = GameInstance->GetSubsystem<UGameConstantManager>();
+		if (ConstantManager)
+		{
+			M_PoolSize = ConstantManager->GetIntValue(TEXT("BulletPoolSize"));
+		}
+	}
+
 	CreatePool();
 }
 

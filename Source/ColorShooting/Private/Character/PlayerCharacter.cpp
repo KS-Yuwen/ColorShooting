@@ -11,10 +11,36 @@
 #include "Subsystem/BulletPoolSubsystem.h"
 #include "InputActionValue.h"
 #include "Subsystem/GameConstantManager.h"
+#include "UObject/ConstructorHelpers.h"
+#include "Components/StaticMeshComponent.h"
 
 APlayerCharacter::APlayerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	static ConstructorHelpers::FClassFinder<ABullet> PlayerBulletBPClass(TEXT("/Game/BluePrints/Bullet/Player/BP_PlayerBullet"));
+	if (PlayerBulletBPClass.Succeeded())
+	{
+		M_PlayerBulletBP = PlayerBulletBPClass.Class;
+	}
+
+	static ConstructorHelpers::FClassFinder<AGreenBullet> PlayerBulletGreenBPClass(TEXT("/Game/BluePrints/Bullet/Player/BP_PlayerBulletGreen"));
+	if (PlayerBulletGreenBPClass.Succeeded())
+	{
+		M_PlayerBulletGreenBP = PlayerBulletGreenBPClass.Class;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> RedBulletMaterialAsset(TEXT("/Game/Assets/Materials/M_BulletColorRed"));
+	if (RedBulletMaterialAsset.Succeeded())
+	{
+		M_RedBulletMaterial = RedBulletMaterialAsset.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> BlueBulletMaterialAsset(TEXT("/Game/Assets/Materials/M_BulletColorBlue"));
+	if (BlueBulletMaterialAsset.Succeeded())
+	{
+		M_BlueBulletMaterial = BlueBulletMaterialAsset.Object;
+	}
 }
 
 void APlayerCharacter::BeginPlay()
@@ -114,7 +140,7 @@ void APlayerCharacter::Fire(const FInputActionValue& Value)
 
 void APlayerCharacter::FireRedShot()
 {
-	if (M_RedShotLevel <= 0 || M_Muzzle == nullptr)
+	if (M_RedShotLevel <= 0 || M_Muzzle == nullptr || M_PlayerBulletBP == nullptr || M_RedBulletMaterial == nullptr)
 	{
 		return;
 	}
@@ -131,10 +157,10 @@ void APlayerCharacter::FireRedShot()
 	if (M_RedShotLevel == 1)
 	{
 		// Level 1: Fire a single bullet
-		if (ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool()))
+		if (ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP, true)))
 		{
 			NewBullet->SetActorLocationAndRotation(SpawnLocation, SpawnRotation);
-			NewBullet->bIsPlayerBullet = true;
+			NewBullet->M_BulletMeshComponent->SetMaterial(0, M_RedBulletMaterial);
 			NewBullet->SetActive(true);
 		}
 	}
@@ -150,11 +176,12 @@ void APlayerCharacter::FireRedShot()
 		for (int32 i = 0; i < NumBullets; ++i)
 		{
 			const FVector CurrentSpawnLocation = StartLocation + (RightVector * i * BulletSpacing);
-			if (ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool()))
+			if (ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP, true)))
 			{
 				NewBullet->SetActorLocationAndRotation(CurrentSpawnLocation, SpawnRotation);
-				NewBullet->bIsPlayerBullet = true;
+				NewBullet->M_BulletMeshComponent->SetMaterial(0, M_RedBulletMaterial);
 				NewBullet->SetActive(true);
+	
 			}
 		}
 	}
@@ -162,7 +189,7 @@ void APlayerCharacter::FireRedShot()
 
 void APlayerCharacter::FireGreenShot()
 {
-	if (M_GreenShotLevel <= 0 || M_Muzzle == nullptr)
+	if (M_GreenShotLevel <= 0 || M_Muzzle == nullptr || M_PlayerBulletGreenBP == nullptr)
 	{
 		return;
 	}
@@ -188,6 +215,7 @@ void APlayerCharacter::FireGreenShot()
 	UBulletPoolSubsystem* BulletPoolSubsystem = GetGameInstance()->GetSubsystem<UBulletPoolSubsystem>();
 	if (BulletPoolSubsystem == nullptr)
 	{
+		
 		return;
 	}
 
@@ -208,6 +236,7 @@ void APlayerCharacter::FireGreenShot()
 	}
 
 	FRotator SpawnRotation = ClosestEnemy ? (ClosestEnemy->GetActorLocation() - GetActorLocation()).Rotation() : GetControlRotation();
+
 	const FVector SpawnLocation = M_Muzzle->GetComponentLocation();
 
 	// Determine number of bullets based on level
@@ -223,23 +252,22 @@ void APlayerCharacter::FireGreenShot()
 
 	for (int32 i = 0; i < NumBullets; ++i)
 	{
-		if (AGreenBullet* NewBullet = Cast<AGreenBullet>(BulletPoolSubsystem->GetBulletFromPool()))
+		if (AGreenBullet* NewBullet = Cast<AGreenBullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletGreenBP, true)))
 		{
 			NewBullet->SetActorLocationAndRotation(SpawnLocation, SpawnRotation);
-			NewBullet->bIsPlayerBullet = true;
-			NewBullet->M_ShotType = EShotType::Green;
 			if (ClosestEnemy)
 			{
 				NewBullet->SetTarget(ClosestEnemy);
 			}
 			NewBullet->SetActive(true);
+			
 		}
 	}
 }
 
 void APlayerCharacter::FireBlueShot()
 {
-	if (M_BlueShotLevel <= 0 || M_Muzzle == nullptr)
+	if (M_BlueShotLevel <= 0 || M_Muzzle == nullptr || M_PlayerBulletBP == nullptr || M_BlueBulletMaterial == nullptr)
 	{
 		return;
 	}
@@ -257,12 +285,13 @@ void APlayerCharacter::FireBlueShot()
 	if (NumBullets <= 1)
 	{
 		// Level 1: Fire a single bullet forward
-		if (ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool()))
+		if (ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP, true)))
 		{
 			NewBullet->SetActorLocationAndRotation(SpawnLocation, BaseRotation);
-			NewBullet->bIsPlayerBullet = true;
+			NewBullet->M_BulletMeshComponent->SetMaterial(0, M_BlueBulletMaterial);
 			NewBullet->M_ShotType = EShotType::Blue;
 			NewBullet->SetActive(true);
+			
 		}
 	}
 	else
@@ -276,12 +305,13 @@ void APlayerCharacter::FireBlueShot()
 		{
 			const float CurrentAngle = StartAngle + (i * AngleStep);
 			const FRotator SpawnRotation = BaseRotation + FRotator(0.0f, CurrentAngle, 0.0f);
-			if (ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool()))
+			if (ABullet* NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP, true)))
 			{
 				NewBullet->SetActorLocationAndRotation(SpawnLocation, SpawnRotation);
-				NewBullet->bIsPlayerBullet = true;
+				NewBullet->M_BulletMeshComponent->SetMaterial(0, M_BlueBulletMaterial);
 				NewBullet->M_ShotType = EShotType::Blue;
 				NewBullet->SetActive(true);
+				
 			}
 		}
 	}
@@ -300,6 +330,7 @@ void APlayerCharacter::Bomb(const FInputActionValue& Value)
 
 void APlayerCharacter::ChangeWeapon(const FInputActionValue& Value)
 {
+	UE_LOG(LogTemp, Log, TEXT("Changed Weapon!"));
 	switch (M_CurrentShotType)
 	{
 	case EShotType::Red:

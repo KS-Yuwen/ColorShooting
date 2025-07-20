@@ -26,6 +26,10 @@ public:
 
 	void SetActive(bool bIsActive);
 
+	// Static mesh component for the bullet's appearance
+	UPROPERTY(VisibleDefaultsOnly, Category = "Projectile")
+	TObjectPtr<class UStaticMeshComponent> M_BulletMeshComponent;
+
 	// Sphere collision component
 	UPROPERTY(VisibleDefaultsOnly, Category = "Projectile")
 	TObjectPtr<class USphereComponent> M_CollisionComponent;

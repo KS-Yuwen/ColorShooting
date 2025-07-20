@@ -91,6 +91,11 @@ void ABullet::SetActive(bool bIsActive)
 	}
 }
 
+void ABullet::SetDirection(const FVector& Direction)
+{
+	M_ProjectileMovementComponent->Velocity = Direction.GetSafeNormal() * M_ProjectileMovementComponent->InitialSpeed;
+}
+
 // Function that is called when the projectile hits something.
 void ABullet::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {

@@ -261,6 +261,7 @@ void APlayerCharacter::FireGreenShot()
 				NewBullet->SetTarget(ClosestEnemy);
 			}
 			NewBullet->SetActive(true);
+			NewBullet->SetDirection(SpawnRotation.Vector());
 		}
 	}
 }

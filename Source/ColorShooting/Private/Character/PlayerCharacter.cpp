@@ -124,6 +124,8 @@ void APlayerCharacter::Look(const FInputActionValue& Value)
 
 void APlayerCharacter::Fire(const FInputActionValue& Value)
 {
+	UE_LOG(LogTemp, Log, TEXT("Fire!"));
+
 	switch (M_CurrentShotType)
 	{
 	case EShotType::Red:
@@ -322,6 +324,7 @@ void APlayerCharacter::Bomb(const FInputActionValue& Value)
 
 void APlayerCharacter::ChangeWeapon(const FInputActionValue& Value)
 {
+	UE_LOG(LogTemp, Log, TEXT("Changed Weapon!"));
 	switch (M_CurrentShotType)
 	{
 	case EShotType::Red:

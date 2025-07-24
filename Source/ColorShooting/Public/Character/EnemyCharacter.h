@@ -31,7 +31,7 @@ public:
 	EShotType GetColorType() const { return M_ColorType; }
 
 protected:
-	virtual void OnDeath() override;
+	virtual void OnDeath();
 
 private:
 	bool bKilledByReflectedBullet = false;

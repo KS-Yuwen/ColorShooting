@@ -7,6 +7,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Kismet/GameplayStatics.h"
+#include "Subsystem/BulletPoolSubsystem.h"
 
 // Sets default values
 ABullet::ABullet()
@@ -84,11 +85,15 @@ void ABullet::SetActive(bool bIsActive)
 			M_CollisionComponent->SetCollisionProfileName(TEXT("Projectile"));
 		}
 		M_ProjectileMovementComponent->Activate();
+		// 寿命をリセット
+		SetLifeSpan(3.0f);
 	}
 	else
 	{
 		M_ProjectileMovementComponent->Deactivate();
 		SetActorLocation(FVector::ZeroVector);
+		// 寿命を0にして即時破棄されないようにする
+		SetLifeSpan(0.0f);
 	}
 }
 
@@ -97,13 +102,25 @@ void ABullet::SetDirection(const FVector& Direction)
 	M_ProjectileMovementComponent->Velocity = Direction.GetSafeNormal() * M_ProjectileMovementComponent->InitialSpeed;
 }
 
+void ABullet::LifeSpanExpired()
+{
+	Super::LifeSpanExpired();
+
+	if (UWorld* World = GetWorld())
+	{
+		if (UBulletPoolSubsystem* BulletPool = UGameplayStatics::GetGameInstance(World)->GetSubsystem<UBulletPoolSubsystem>())
+		{
+			BulletPool->ReturnBulletToPool(this);
+		}
+	}
+}
+
 // Function that is called when the projectile hits something.
 void ABullet::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
-	// If the other actor is invalid or is this bullet itself, deactivate and return.
-	if (OtherActor == nullptr || OtherActor == this || OtherComponent == nullptr)
+	// If the other actor is this bullet itself, do nothing.
+	if (OtherActor == this)
 	{
-		SetActive(false);
 		return;
 	}
 
@@ -128,11 +145,17 @@ void ABullet::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrim
 	}
 
 	// If the hit component is simulating physics, add an impulse.
-	if (OtherComponent->IsSimulatingPhysics())
+	if (OtherComponent && OtherComponent->IsSimulatingPhysics())
 	{
 		OtherComponent->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
 	}
 
-	// Deactivate the bullet after handling the hit.
-	SetActive(false);
+	// Return the bullet to the pool.
+	if (UWorld* World = GetWorld())
+	{
+		if (UBulletPoolSubsystem* BulletPool = UGameplayStatics::GetGameInstance(World)->GetSubsystem<UBulletPoolSubsystem>())
+		{
+			BulletPool->ReturnBulletToPool(this);
+		}
+	}
 }

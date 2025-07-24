@@ -24,6 +24,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	virtual void LifeSpanExpired() override;
+
 	void SetActive(bool bIsActive);
 
 	/**

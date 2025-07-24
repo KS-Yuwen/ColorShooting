@@ -7,6 +7,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Kismet/GameplayStatics.h"
+#include "Subsystem/BulletPoolSubsystem.h"
 
 // Sets default values
 ABullet::ABullet()
@@ -31,19 +32,13 @@ ABullet::ABullet()
 	M_BulletMeshComponent->SetupAttachment(RootComponent);
 
 	// Set a default mesh and material
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> BulletMeshAsset(TEXT("/Engine/BasicShapes/Sphere"));
-	if (BulletMeshAsset.Succeeded())
+	if (M_DefaultMesh)
 	{
-		M_BulletMeshComponent->SetStaticMesh(BulletMeshAsset.Object);
-		static ConstructorHelpers::FObjectFinder<UMaterial> BulletMaterialAsset(TEXT("/Engine/BasicShapes/BasicShapeMaterial"));
-		if (BulletMaterialAsset.Succeeded())
-		{
-			M_BulletMeshComponent->SetMaterial(0, BulletMaterialAsset.Object);
-		}
+		M_BulletMeshComponent->SetStaticMesh(M_DefaultMesh);
 	}
-	else
+	if (M_DefaultMaterial)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("ABullet: Failed to set default mesh."));
+		M_BulletMeshComponent->SetMaterial(0, M_DefaultMaterial);
 	}
 	M_BulletMeshComponent->SetRelativeScale3D(FVector(0.1f, 0.1f, 0.1f));
 
@@ -90,11 +85,15 @@ void ABullet::SetActive(bool bIsActive)
 			M_CollisionComponent->SetCollisionProfileName(TEXT("Projectile"));
 		}
 		M_ProjectileMovementComponent->Activate();
+		// 寿命をリセット
+		SetLifeSpan(3.0f);
 	}
 	else
 	{
 		M_ProjectileMovementComponent->Deactivate();
 		SetActorLocation(FVector::ZeroVector);
+		// 寿命を0にして即時破棄されないようにする
+		SetLifeSpan(0.0f);
 	}
 }
 
@@ -103,38 +102,60 @@ void ABullet::SetDirection(const FVector& Direction)
 	M_ProjectileMovementComponent->Velocity = Direction.GetSafeNormal() * M_ProjectileMovementComponent->InitialSpeed;
 }
 
+void ABullet::LifeSpanExpired()
+{
+	Super::LifeSpanExpired();
+
+	if (UWorld* World = GetWorld())
+	{
+		if (UBulletPoolSubsystem* BulletPool = UGameplayStatics::GetGameInstance(World)->GetSubsystem<UBulletPoolSubsystem>())
+		{
+			BulletPool->ReturnBulletToPool(this);
+		}
+	}
+}
+
 // Function that is called when the projectile hits something.
 void ABullet::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (OtherActor == nullptr || OtherActor == this || OtherComponent == nullptr)
+	// If the other actor is this bullet itself, do nothing.
+	if (OtherActor == this)
 	{
-		SetActive(false);
 		return;
 	}
 
-	AEnemyCharacter* EnemyCharacter = Cast<AEnemyCharacter>(OtherActor);
-	if (bIsPlayerBullet && EnemyCharacter != nullptr)
+	// Handle player bullet hitting an enemy
+	if (bIsPlayerBullet)
 	{
-		if (EnemyCharacter->GetColorType() == M_ShotType)
+		if (AEnemyCharacter* EnemyCharacter = Cast<AEnemyCharacter>(OtherActor))
 		{
-			// Reflect the bullet with a random angle
-			const FVector ReflectionVector = FMath::GetReflectionVector(GetVelocity(), Hit.ImpactNormal);
-			const FVector RandomizedReflectionVector = ReflectionVector + FMath::VRand() * 500.0f;
-			M_ProjectileMovementComponent->Velocity = RandomizedReflectionVector.GetSafeNormal() * M_ProjectileMovementComponent->InitialSpeed;
-			bWasReflected = true;
-			return; // Don't destroy the bullet
-		}
-		else
-		{
-			// Apply damage to the enemy
+			// If the enemy's color matches the bullet's color, reflect the bullet.
+			if (EnemyCharacter->GetColorType() == M_ShotType)
+			{
+				const FVector ReflectionVector = FMath::GetReflectionVector(GetVelocity(), Hit.ImpactNormal);
+				const FVector RandomizedReflectionVector = ReflectionVector + FMath::VRand() * 500.0f;
+				M_ProjectileMovementComponent->Velocity = RandomizedReflectionVector.GetSafeNormal() * M_ProjectileMovementComponent->InitialSpeed;
+				bWasReflected = true;
+				return; // Do not deactivate the bullet, as it has been reflected.
+			}
+			
+			// If the colors do not match, apply damage to the enemy.
 			UGameplayStatics::ApplyDamage(EnemyCharacter, Damage, GetInstigatorController(), this, UDamageType::StaticClass());
 		}
 	}
 
-	// Only add impulse and destroy projectile if we hit a physics
-	if (OtherComponent->IsSimulatingPhysics())
+	// If the hit component is simulating physics, add an impulse.
+	if (OtherComponent && OtherComponent->IsSimulatingPhysics())
 	{
 		OtherComponent->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
 	}
-	SetActive(false);
+
+	// Return the bullet to the pool.
+	if (UWorld* World = GetWorld())
+	{
+		if (UBulletPoolSubsystem* BulletPool = UGameplayStatics::GetGameInstance(World)->GetSubsystem<UBulletPoolSubsystem>())
+		{
+			BulletPool->ReturnBulletToPool(this);
+		}
+	}
 }

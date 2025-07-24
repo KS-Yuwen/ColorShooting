@@ -4,6 +4,8 @@
 #include "GameFramework/Character.h"
 #include "CharacterBase.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthChangedSignature, float, OldHealth, float, NewHealth);
+
 // 全てのキャラクターの基底クラス
 UCLASS()
 class COLORSHOOTING_API ACharacterBase : public ACharacter
@@ -13,28 +15,45 @@ class COLORSHOOTING_API ACharacterBase : public ACharacter
 public:
 	ACharacterBase();
 
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	// Called to bind functionality to input
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	// Handles taking damage
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	float GetHealth() const { return M_Health; }
+
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	float GetMaxHealth() const { return M_MaxHealth; }
+
+	UPROPERTY(BlueprintAssignable, Category = "Health")
+	FOnHealthChangedSignature OnHealthChanged;
+
 protected:
 	virtual void BeginPlay() override;
 
-public:	
-	virtual void Tick(float DeltaTime) override;
-
-	// 機能を入力にバインドするために呼び出されます
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	// ダメージを受ける処理
-	UFUNCTION(BlueprintCallable, Category = "Character")
-	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
-
-protected:
 	// Muzzle for firing projectiles
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
 	TObjectPtr<USceneComponent> M_Muzzle;
 
+	// Maximum health of the character
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Health")
+	float M_MaxHealth = 100.0f;
+
 	// Current health of the character
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character")
-	float M_Health = 100.0f;
+	UPROPERTY(VisibleInstanceOnly, BlueprintReadOnly, Category = "Health")
+	float M_Health;
+
+	// Flag to indicate if the character is dead
+	UPROPERTY(BlueprintReadOnly, Category = "Health")
+	bool bIsDead = false;
 
 	// Handles the character's death
-	virtual void OnDeath();
+	UFUNCTION(BlueprintNativeEvent, Category = "Character")
+	void OnDeath();
+	virtual void OnDeath_Implementation();
 };

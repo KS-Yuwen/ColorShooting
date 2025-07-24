@@ -7,13 +7,16 @@
 #include "BulletPoolSubsystem.generated.h"
 
 USTRUCT()
-struct FBulletArray
+struct FBulletPool
 {
     GENERATED_BODY()
 
 public:
     UPROPERTY()
-    TArray<TObjectPtr<ABullet>> Bullets;
+    TArray<TObjectPtr<ABullet>> AllBullets;
+
+    UPROPERTY()
+    TArray<TObjectPtr<ABullet>> AvailableBullets;
 };
 
 UCLASS()
@@ -40,11 +43,5 @@ protected:
 
 private:
 	UPROPERTY()
-	TMap<TSubclassOf<ABullet>, FBulletArray> M_BulletPools;
-
-	UPROPERTY()
-	TMap<TSubclassOf<ABullet>, FBulletArray> M_PooledPlayerBullets;
-
-	UPROPERTY()
-	TMap<TSubclassOf<ABullet>, FBulletArray> M_PooledEnemyBullets;
+	TMap<TSubclassOf<ABullet>, FBulletPool> M_BulletPools;
 };

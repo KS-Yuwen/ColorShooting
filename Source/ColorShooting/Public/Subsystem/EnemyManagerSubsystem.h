@@ -37,9 +37,9 @@ public:
 	 * @param Location The reference location to find the closest enemy from.
 	 * @return The closest enemy character, or nullptr if no enemies are registered.
 	 */
-	AEnemyCharacter* GetClosestEnemy(const FVector& Location) const;
+	AEnemyCharacter* GetClosestEnemy(const FVector& Location);
 
 private:
-	UPROPERTY()
+	UPROPERTY(Transient)
 	TArray<TObjectPtr<AEnemyCharacter>> M_ActiveEnemies;
 };

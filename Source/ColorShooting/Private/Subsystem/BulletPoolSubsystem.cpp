@@ -37,14 +37,9 @@ void UBulletPoolSubsystem::CreatePool(TSubclassOf<ABullet> BulletClass)
 		return;
 	}
 
-	FBulletArray NewPool;
-	NewPool.Bullets.Reserve(M_PoolSize);
-
-	FBulletArray PlayerPool;
-	PlayerPool.Bullets.Reserve(M_PoolSize / 2);
-
-	FBulletArray EnemyPool;
-	EnemyPool.Bullets.Reserve(M_PoolSize - (M_PoolSize / 2));
+	FBulletPool& Pool = M_BulletPools.FindOrAdd(BulletClass);
+	Pool.AllBullets.Reserve(M_PoolSize);
+	Pool.AvailableBullets.Reserve(M_PoolSize);
 
 	for (uint32 i = 0; i < M_PoolSize; ++i)
 	{
@@ -52,24 +47,10 @@ void UBulletPoolSubsystem::CreatePool(TSubclassOf<ABullet> BulletClass)
 		if (Bullet)
 		{
 			Bullet->SetActive(false);
-			NewPool.Bullets.Add(Bullet);
-
-			if (i < M_PoolSize / 2)
-			{
-				Bullet->bIsPlayerBullet = true;
-				PlayerPool.Bullets.Add(Bullet);
-			}
-			else
-			{
-				Bullet->bIsPlayerBullet = false;
-				EnemyPool.Bullets.Add(Bullet);
-			}
+			Pool.AllBullets.Add(Bullet);
+			Pool.AvailableBullets.Add(Bullet);
 		}
 	}
-
-	M_BulletPools.Add(BulletClass, NewPool);
-	M_PooledPlayerBullets.Add(BulletClass, PlayerPool);
-	M_PooledEnemyBullets.Add(BulletClass, EnemyPool);
 }
 
 ABullet* UBulletPoolSubsystem::GetBulletFromPool(TSubclassOf<ABullet> BulletClass, const bool bIsPlayerBullet)
@@ -84,18 +65,18 @@ ABullet* UBulletPoolSubsystem::GetBulletFromPool(TSubclassOf<ABullet> BulletClas
 		CreatePool(BulletClass);
 	}
 
-	FBulletArray& TargetPoolArray = bIsPlayerBullet ? M_PooledPlayerBullets.FindOrAdd(BulletClass) : M_PooledEnemyBullets.FindOrAdd(BulletClass);
-
-	for (ABullet* Bullet : TargetPoolArray.Bullets)
+	FBulletPool& Pool = M_BulletPools.FindOrAdd(BulletClass);
+	if (Pool.AvailableBullets.Num() > 0)
 	{
-		if (Bullet && !Bullet->IsActorTickEnabled()) // Check if the bullet is inactive
+		ABullet* Bullet = Pool.AvailableBullets.Pop();
+		if (Bullet)
 		{
+			Bullet->bIsPlayerBullet = bIsPlayerBullet;
 			return Bullet;
 		}
 	}
 
 	// If no bullets are available in the pool, create a new one.
-	
 	UWorld* World = GetWorld();
 	if (!World)
 	{
@@ -105,19 +86,26 @@ ABullet* UBulletPoolSubsystem::GetBulletFromPool(TSubclassOf<ABullet> BulletClas
 	ABullet* NewBullet = World->SpawnActor<ABullet>(BulletClass, FVector::ZeroVector, FRotator::ZeroRotator);
 	if (NewBullet)
 	{
-		NewBullet->SetActive(false);
 		NewBullet->bIsPlayerBullet = bIsPlayerBullet;
-		TargetPoolArray.Bullets.Add(NewBullet);
-		M_BulletPools.FindOrAdd(BulletClass).Bullets.Add(NewBullet);
+		Pool.AllBullets.Add(NewBullet);
 		return NewBullet;
 	}
+
 	return nullptr;
 }
 
 void UBulletPoolSubsystem::ReturnBulletToPool(ABullet* Bullet)
 {
-	if (Bullet)
+	if (Bullet == nullptr)
 	{
-		Bullet->SetActive(false);
+		return;
+	}
+
+	Bullet->SetActive(false);
+
+	TSubclassOf<ABullet> BulletClass = Bullet->GetClass();
+	if (FBulletPool* Pool = M_BulletPools.Find(BulletClass))
+	{
+		Pool->AvailableBullets.Add(Bullet);
 	}
 }

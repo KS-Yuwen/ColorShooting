@@ -36,6 +36,14 @@ public:
 	UPROPERTY(VisibleDefaultsOnly, Category = "Projectile")
 	TObjectPtr<class UStaticMeshComponent> M_BulletMeshComponent;
 
+	// Default mesh for the bullet
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
+	TObjectPtr<class UStaticMesh> M_DefaultMesh;
+
+	// Default material for the bullet
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
+	TObjectPtr<class UMaterialInterface> M_DefaultMaterial;
+
 	// Sphere collision component
 	UPROPERTY(VisibleDefaultsOnly, Category = "Projectile")
 	TObjectPtr<class USphereComponent> M_CollisionComponent;

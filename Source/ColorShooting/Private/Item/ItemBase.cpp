@@ -6,7 +6,8 @@
 #include "GameFramework/RotatingMovementComponent.h"
 #include "GameFramework/Pawn.h"
 
-AItemBase::AItemBase()
+AItemBase::AItemBase(const FObjectInitializer& ObjectInitializer)
+	: Super(ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = false;
 

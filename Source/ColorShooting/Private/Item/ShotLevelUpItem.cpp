@@ -4,10 +4,36 @@
 #include "Character/PlayerCharacter.h"
 #include "TimerManager.h"
 #include "Subsystem/GameConstantManager.h"
+#include "Components/StaticMeshComponent.h"
+#include "Materials/MaterialInstanceConstant.h"
+#include "UObject/ConstructorHelpers.h"
+
+AShotLevelUpItem::AShotLevelUpItem(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
+{
+	static ConstructorHelpers::FObjectFinder<UMaterialInstanceConstant> RedMaterialAsset(TEXT("/Game/Assets/Materials/M_Red"));
+	if (RedMaterialAsset.Succeeded())
+	{
+		M_RedMaterial = RedMaterialAsset.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UMaterialInstanceConstant> GreenMaterialAsset(TEXT("/Game/Assets/Materials/M_Green"));
+	if (GreenMaterialAsset.Succeeded())
+	{
+		M_GreenMaterial = GreenMaterialAsset.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UMaterialInstanceConstant> BlueMaterialAsset(TEXT("/Game/Assets/Materials/M_Blue"));
+	if (BlueMaterialAsset.Succeeded())
+	{
+		M_BlueMaterial = BlueMaterialAsset.Object;
+	}
+}
 
 void AShotLevelUpItem::BeginPlay()
 {
 	Super::BeginPlay();
+
+	ChangeShotType();
 
 	UGameConstantManager* constantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
 	if (constantManager != nullptr)
@@ -47,4 +73,25 @@ void AShotLevelUpItem::ChangeShotType()
 	}
 
 	M_ShotType = static_cast<EShotType>(FMath::RandRange(minShotType, maxShotType));
+
+	UMaterialInstanceConstant* newMaterial = nullptr;
+	switch (M_ShotType)
+	{
+	case EShotType::Red:
+		newMaterial = M_RedMaterial;
+		break;
+	case EShotType::Green:
+		newMaterial = M_GreenMaterial;
+		break;
+	case EShotType::Blue:
+		newMaterial = M_BlueMaterial;
+		break;
+	default:
+		break;
+	}
+
+	if (newMaterial != nullptr && M_MeshComponent != nullptr)
+	{
+		M_MeshComponent->SetMaterial(0, newMaterial);
+	}
 }

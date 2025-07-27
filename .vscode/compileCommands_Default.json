@@ -24,6 +24,14 @@
 		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
 	},
 	{
+		"file": "F:\\UnrealProject\\ColorShooting\\Source\\ColorShooting\\Private\\Character\\BossCharacter.cpp",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@F:\\UnrealProject\\ColorShooting\\.vscode\\compileCommands_Default\\ColorShooting.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
 		"file": "F:\\UnrealProject\\ColorShooting\\Source\\ColorShooting\\Private\\Character\\CharacterBase.cpp",
 		"arguments": [
 			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
@@ -120,6 +128,14 @@
 		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
 	},
 	{
+		"file": "F:\\UnrealProject\\ColorShooting\\Source\\ColorShooting\\Private\\UI\\PlayerHUD.cpp",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@F:\\UnrealProject\\ColorShooting\\.vscode\\compileCommands_Default\\ColorShooting.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
 		"file": "F:\\UnrealProject\\ColorShooting\\Source\\ColorShooting\\Public\\Bullet\\Bullet.h",
 		"arguments": [
 			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
@@ -129,6 +145,14 @@
 	},
 	{
 		"file": "F:\\UnrealProject\\ColorShooting\\Source\\ColorShooting\\Public\\Bullet\\GreenBullet.h",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@F:\\UnrealProject\\ColorShooting\\.vscode\\compileCommands_Default\\ColorShooting.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "F:\\UnrealProject\\ColorShooting\\Source\\ColorShooting\\Public\\Character\\BossCharacter.h",
 		"arguments": [
 			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
 			"@F:\\UnrealProject\\ColorShooting\\.vscode\\compileCommands_Default\\ColorShooting.1.rsp"
@@ -241,6 +265,14 @@
 	},
 	{
 		"file": "F:\\UnrealProject\\ColorShooting\\Source\\ColorShooting\\Public\\Subsystem\\GameConstantManager.h",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@F:\\UnrealProject\\ColorShooting\\.vscode\\compileCommands_Default\\ColorShooting.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "F:\\UnrealProject\\ColorShooting\\Source\\ColorShooting\\Public\\UI\\PlayerHUD.h",
 		"arguments": [
 			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
 			"@F:\\UnrealProject\\ColorShooting\\.vscode\\compileCommands_Default\\ColorShooting.1.rsp"

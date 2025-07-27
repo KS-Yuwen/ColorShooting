@@ -11,7 +11,10 @@
 UCLASS()
 class COLORSHOOTING_API AShotLevelUpItem : public AItemBase
 {
-	GENERATED_BODY()
+	GENERATED_UCLASS_BODY()
+
+public:
+	AShotLevelUpItem();
 
 protected:
 	virtual void BeginPlay() override;
@@ -26,5 +29,13 @@ private:
 	EShotType M_ShotType = EShotType::Red;
 
 	FTimerHandle M_TimerHandle;
-	
+
+	UPROPERTY(EditDefaultsOnly, Category = "Materials")
+	TObjectPtr<class UMaterialInstanceConstant> M_RedMaterial;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Materials")
+	TObjectPtr<class UMaterialInstanceConstant> M_GreenMaterial;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Materials")
+	TObjectPtr<class UMaterialInstanceConstant> M_BlueMaterial;
 };

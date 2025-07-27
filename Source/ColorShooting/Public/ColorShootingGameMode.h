@@ -6,6 +6,7 @@
 #include "ColorShootingGameMode.generated.h"
 
 class AColorShootingGameState;
+class APlayerHUD;
 
 UCLASS()
 class COLORSHOOTING_API AColorShootingGameMode : public AGameModeBase

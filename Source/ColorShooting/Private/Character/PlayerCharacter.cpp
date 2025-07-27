@@ -345,6 +345,11 @@ void APlayerCharacter::AddBomb()
 	}
 }
 
+int32 APlayerCharacter::GetBombStock() const
+{
+	return M_BombStock;
+}
+
 void APlayerCharacter::AddShotLevel(const EShotType ShotType)
 {
 	AColorShootingGameMode *GameMode = Cast<AColorShootingGameMode>(UGameplayStatics::GetGameMode(this));

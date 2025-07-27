@@ -39,10 +39,10 @@ public:
 
 	/**
 	 * Adds a level to the specified shot type.
-	 * @param ShotType The type of shot to level up.
+	 * @param shotType The type of shot to level up.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Status")
-	void AddShotLevel(const EShotType ShotType);
+	void AddShotLevel(const EShotType shotType);
 
 protected:
 	// Input Mapping Context
@@ -70,15 +70,15 @@ protected:
 	TObjectPtr<UInputAction> M_ChangeWeaponAction;
 
 	// Handles move input
-	void Move(const FInputActionValue& Value);
+	void Move(const FInputActionValue& value);
 	// Handles look input
-	void Look(const FInputActionValue& Value);
+	void Look(const FInputActionValue& value);
 	// Handles fire input
-	void Fire(const FInputActionValue& Value);
+	void Fire(const FInputActionValue& value);
 	// Handles bomb input
-	void Bomb(const FInputActionValue& Value);
+	void Bomb(const FInputActionValue& value);
 	// Handles weapon change input
-	void ChangeWeapon(const FInputActionValue& Value);
+	void ChangeWeapon(const FInputActionValue& value);
 
 private:
 	// Fires the red shot type
@@ -90,13 +90,13 @@ private:
 
 	/**
 	 * @brief Initializes and activates a bullet with the given parameters.
-	 * @param NewBullet The bullet actor to initialize.
-	 * @param SpawnLocation The location to spawn the bullet.
-	 * @param SpawnRotation The rotation of the bullet.
-	 * @param BulletMaterial The material to apply to the bullet (optional).
-	 * @param ShotType The shot type of the bullet (optional).
+	 * @param newBullet The bullet actor to initialize.
+	 * @param spawnLocation The location to spawn the bullet.
+	 * @param spawnRotation The rotation of the bullet.
+	 * @param bulletMaterial The material to apply to the bullet (optional).
+	 * @param shotType The shot type of the bullet (optional).
 	 */
-	void InitializeAndActivateBullet(ABullet* NewBullet, const FVector& SpawnLocation, const FRotator& SpawnRotation, UMaterialInterface* BulletMaterial = nullptr, EShotType ShotType = EShotType::Max);
+	void InitializeAndActivateBullet(ABullet* newBullet, const FVector& spawnLocation, const FRotator& spawnRotation, UMaterialInterface* bulletMaterial = nullptr, EShotType shotType = EShotType::Max);
 
 private:
 	/** Current number of bombs in stock */

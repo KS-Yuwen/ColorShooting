@@ -15,57 +15,70 @@ void AEnemyCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	// Register with the EnemyManagerSubsystem
-	if (UEnemyManagerSubsystem* EnemyManager = GetWorld()->GetGameInstance()->GetSubsystem<UEnemyManagerSubsystem>())
+	UEnemyManagerSubsystem* enemyManager = GetWorld()->GetGameInstance()->GetSubsystem<UEnemyManagerSubsystem>();
+	if (enemyManager == nullptr)
 	{
-		EnemyManager->RegisterEnemy(this);
+		return;
 	}
+	enemyManager->RegisterEnemy(this);
 }
 
-void AEnemyCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void AEnemyCharacter::EndPlay(const EEndPlayReason::Type endPlayReason)
 {
 	// Unregister from the EnemyManagerSubsystem
-	if (UEnemyManagerSubsystem* EnemyManager = GetWorld()->GetGameInstance()->GetSubsystem<UEnemyManagerSubsystem>())
+	UEnemyManagerSubsystem* enemyManager = GetWorld()->GetGameInstance()->GetSubsystem<UEnemyManagerSubsystem>();
+	if (enemyManager == nullptr)
 	{
-		EnemyManager->UnregisterEnemy(this);
+		Super::EndPlay(endPlayReason);
+		return;
 	}
+	enemyManager->UnregisterEnemy(this);
 
-	Super::EndPlay(EndPlayReason);
+	Super::EndPlay(endPlayReason);
 }
 
-void AEnemyCharacter::Tick(float DeltaTime)
+void AEnemyCharacter::Tick(float deltaTime)
 {
-	Super::Tick(DeltaTime);
+	Super::Tick(deltaTime);
 }
 
-float AEnemyCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+float AEnemyCharacter::TakeDamage(float damageAmount, FDamageEvent const& damageEvent, AController* eventInstigator, AActor* damageCauser)
 {
-	const float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	const float actualDamage = Super::TakeDamage(damageAmount, damageEvent, eventInstigator, damageCauser);
 
-	if (ActualDamage > 0.0f)
+	if (actualDamage <= 0.0f)
 	{
-		ABullet* Bullet = Cast<ABullet>(DamageCauser);
-		if (Bullet && Bullet->bWasReflected)
-		{
-			bKilledByReflectedBullet = true;
-		}
+		return actualDamage;
 	}
 
-	return ActualDamage;
+	ABullet* bullet = Cast<ABullet>(damageCauser);
+	if (bullet && bullet->M_bWasReflected)
+	{
+		M_bKilledByReflectedBullet = true;
+	}
+
+	return actualDamage;
 }
 
 void AEnemyCharacter::OnDeath()
 {
-	AColorShootingGameMode* GameMode = Cast<AColorShootingGameMode>(UGameplayStatics::GetGameMode(this));
-	if (GameMode != nullptr)
+	AColorShootingGameMode* gameMode = Cast<AColorShootingGameMode>(UGameplayStatics::GetGameMode(this));
+	if (gameMode == nullptr)
 	{
-		UGameConstantManager* ConstantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
-		if (ConstantManager != nullptr)
-		{
-			const FName ScoreId = bKilledByReflectedBullet ? FName("Score.EnemyKillReflected") : FName("Score.EnemyKill");
-			const int32 Score = ConstantManager->GetIntValue(ScoreId);
-			GameMode->AddScore(Score);
-		}
+		Super::OnDeath();
+		return;
 	}
+
+	UGameConstantManager* constantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
+	if (constantManager == nullptr)
+	{
+		Super::OnDeath();
+		return;
+	}
+
+	const FName scoreId = M_bKilledByReflectedBullet ? FName("Score.EnemyKillReflected") : FName("Score.EnemyKill");
+	const int32 score = constantManager->GetIntValue(scoreId);
+	gameMode->AddScore(score);
 
 	Super::OnDeath();
 }

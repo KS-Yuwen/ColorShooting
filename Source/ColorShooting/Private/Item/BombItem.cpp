@@ -4,16 +4,16 @@
 #include "Item/BombItem.h"
 #include "Character/PlayerCharacter.h"
 
-void ABombItem::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+void ABombItem::OnOverlapBegin(UPrimitiveComponent* overlappedComponent, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool bFromSweep, const FHitResult & sweepResult)
 {
-    Super::OnOverlapBegin(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
+    Super::OnOverlapBegin(overlappedComponent, otherActor, otherComp, otherBodyIndex, bFromSweep, sweepResult);
 
-    APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(OtherActor);
-    if (PlayerCharacter == nullptr)
+    APlayerCharacter* playerCharacter = Cast<APlayerCharacter>(otherActor);
+    if (playerCharacter == nullptr)
     {
         return;
     }
 
-    PlayerCharacter->AddBomb();
+    playerCharacter->AddBomb();
     OnCollected();
 }

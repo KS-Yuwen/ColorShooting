@@ -31,7 +31,7 @@ void ACharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 float ACharacterBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	// Do not take damage if already dead
-	if (bIsDead)
+	if (M_bIsDead)
 	{
 		return 0.0f;
 	}
@@ -58,11 +58,11 @@ float ACharacterBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 void ACharacterBase::OnDeath_Implementation()
 {
 	// Ensure death logic only runs once
-	if (bIsDead)
+	if (M_bIsDead)
 	{
 		return;
 	}
-	bIsDead = true;
+	M_bIsDead = true;
 
 	// Default death logic: destroy the actor
 	// This can be overridden in Blueprints or child classes to add custom death effects, sounds, etc.

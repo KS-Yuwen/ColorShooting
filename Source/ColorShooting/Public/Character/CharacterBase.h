@@ -50,7 +50,7 @@ protected:
 
 	// Flag to indicate if the character is dead
 	UPROPERTY(BlueprintReadOnly, Category = "Health")
-	bool bIsDead = false;
+	bool M_bIsDead = false;
 
 	// Handles the character's death
 	UFUNCTION(BlueprintNativeEvent, Category = "Character")

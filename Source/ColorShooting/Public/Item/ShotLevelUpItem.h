@@ -15,7 +15,7 @@ class COLORSHOOTING_API AShotLevelUpItem : public AItemBase
 
 protected:
 	virtual void BeginPlay() override;
-	virtual void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult) override;
+	virtual void OnOverlapBegin(UPrimitiveComponent* overlappedComponent, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool bFromSweep, const FHitResult & sweepResult) override;
 
 private:
 	UFUNCTION()

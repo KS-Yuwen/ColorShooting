@@ -1,23 +1,23 @@
 #include "Subsystem/GameConstantManager.h"
 #include "Engine/DataTable.h"
 
-void UGameConstantManager::Initialize(FSubsystemCollectionBase& Collection)
+void UGameConstantManager::Initialize(FSubsystemCollectionBase& collection)
 {
-	Super::Initialize(Collection);
+	Super::Initialize(collection);
 
-	FString DataTablePath = TEXT("/Game/Data/GameConstants.GameConstants");
-	ConstantDataTable = LoadObject<UDataTable>(nullptr, *DataTablePath);
+	FString dataTablePath = TEXT("/Game/Data/GameConstants.GameConstants");
+	M_ConstantDataTable = LoadObject<UDataTable>(nullptr, *dataTablePath);
 
-	if (ConstantDataTable)
+	if (M_ConstantDataTable)
 	{
-		FString ContextString;
-		TArray<FName> RowNames = ConstantDataTable->GetRowNames();
-		for (const FName& RowName : RowNames)
+		FString contextString;
+		TArray<FName> rowNames = M_ConstantDataTable->GetRowNames();
+		for (const FName& rowName : rowNames)
 		{
-			FGameConstant* Row = ConstantDataTable->FindRow<FGameConstant>(RowName, ContextString);
-			if (Row)
+			FGameConstant* row = M_ConstantDataTable->FindRow<FGameConstant>(rowName, contextString);
+			if (row)
 			{
-				ConstantMap.Add(RowName, Row->Value);
+				M_ConstantMap.Add(rowName, *row);
 			}
 		}
 	}
@@ -28,13 +28,32 @@ void UGameConstantManager::Deinitialize()
 	Super::Deinitialize();
 }
 
-int32 UGameConstantManager::GetIntValue(const FName& ConstantId) const
+int32 UGameConstantManager::GetIntValue(const FName& constantId) const
 {
-	if (ConstantMap.Contains(ConstantId))
+	if (M_ConstantMap.Contains(constantId))
 	{
-		return ConstantMap[ConstantId];
+		const FGameConstant& constant = M_ConstantMap[constantId];
+		if (constant.Type == EConstantType::Int)
+		{
+			return constant.IntValue;
+		}
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("GameConstant with ID '%s' not found."), *ConstantId.ToString());
+	UE_LOG(LogTemp, Warning, TEXT("GameConstant with ID '%s' not found or is not an int."), *constantId.ToString());
 	return 0;
+}
+
+float UGameConstantManager::GetFloatValue(const FName& constantId) const
+{
+	if (M_ConstantMap.Contains(constantId))
+	{
+		const FGameConstant& constant = M_ConstantMap[constantId];
+		if (constant.Type == EConstantType::Float)
+		{
+			return constant.FloatValue;
+		}
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("GameConstant with ID '%s' not found or is not a float."), *constantId.ToString());
+	return 0.0f;
 }

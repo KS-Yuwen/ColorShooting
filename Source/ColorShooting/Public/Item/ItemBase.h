@@ -14,7 +14,7 @@ class COLORSHOOTING_API AItemBase : public AActor
 	GENERATED_BODY()
 	
 public:	
-	AItemBase();
+	AItemBase(const FObjectInitializer& ObjectInitializer);
 
 protected:
 	virtual void BeginPlay() override;

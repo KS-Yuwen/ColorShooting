@@ -1,11 +1,13 @@
 
 #include "ColorShootingGameMode.h"
 #include "ColorShootingGameState.h"
+#include "UI/PlayerHUD.h"
 #include "Kismet/GameplayStatics.h"
 
 AColorShootingGameMode::AColorShootingGameMode()
 {
 	GameStateClass = AColorShootingGameState::StaticClass();
+	HUDClass = APlayerHUD::StaticClass();
 }
 
 void AColorShootingGameMode::BeginPlay()

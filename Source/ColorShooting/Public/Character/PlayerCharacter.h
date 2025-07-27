@@ -34,6 +34,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	void AddBomb();
 
+	UFUNCTION(BlueprintCallable, Category = "Status")
+	int32 GetBombStock() const;
+
 	/**
 	 * Adds a level to the specified shot type.
 	 * @param ShotType The type of shot to level up.

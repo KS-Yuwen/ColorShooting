@@ -15,6 +15,7 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Components/StaticMeshComponent.h"
 
+
 APlayerCharacter::APlayerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
@@ -82,48 +83,48 @@ void APlayerCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-void APlayerCharacter::SetupPlayerInputComponent(UInputComponent *PlayerInputComponent)
+void APlayerCharacter::SetupPlayerInputComponent(UInputComponent *playerInputComponent)
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	Super::SetupPlayerInputComponent(playerInputComponent);
 
 	// Cast to Enhanced Input Component
-	UEnhancedInputComponent *EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
-	if (EnhancedInputComponent == nullptr)
+	UEnhancedInputComponent *enhancedInputComponent = CastChecked<UEnhancedInputComponent>(playerInputComponent);
+	if (enhancedInputComponent == nullptr)
 	{
 		return;
 	}
 
 	// Bind actions
-	EnhancedInputComponent->BindAction(M_MoveAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Move);
-	EnhancedInputComponent->BindAction(M_LookAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Look);
-	EnhancedInputComponent->BindAction(M_FireAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Fire);
-	EnhancedInputComponent->BindAction(M_BombAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Bomb);
-	EnhancedInputComponent->BindAction(M_ChangeWeaponAction, ETriggerEvent::Triggered, this, &APlayerCharacter::ChangeWeapon);
+	enhancedInputComponent->BindAction(M_MoveAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Move);
+	enhancedInputComponent->BindAction(M_LookAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Look);
+	enhancedInputComponent->BindAction(M_FireAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Fire);
+	enhancedInputComponent->BindAction(M_BombAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Bomb);
+	enhancedInputComponent->BindAction(M_ChangeWeaponAction, ETriggerEvent::Triggered, this, &APlayerCharacter::ChangeWeapon);
 }
 
-void APlayerCharacter::Move(const FInputActionValue &Value)
+void APlayerCharacter::Move(const FInputActionValue &value)
 {
 	if (Controller == nullptr)
 	{
 		return;
 	}
-	const FVector2D MovementVector = Value.Get<FVector2D>();
-	AddMovementInput(GetActorForwardVector(), MovementVector.Y);
-	AddMovementInput(GetActorRightVector(), MovementVector.X);
+	const FVector2D movementVector = value.Get<FVector2D>();
+	AddMovementInput(GetActorForwardVector(), movementVector.Y);
+	AddMovementInput(GetActorRightVector(), movementVector.X);
 }
 
-void APlayerCharacter::Look(const FInputActionValue &Value)
+void APlayerCharacter::Look(const FInputActionValue &value)
 {
 	if (Controller == nullptr)
 	{
 		return;
 	}
-	const FVector2D LookAxisVector = Value.Get<FVector2D>();
-	AddControllerYawInput(LookAxisVector.X);
-	AddControllerPitchInput(LookAxisVector.Y);
+	const FVector2D lookAxisVector = value.Get<FVector2D>();
+	AddControllerYawInput(lookAxisVector.X);
+	AddControllerPitchInput(lookAxisVector.Y);
 }
 
-void APlayerCharacter::Fire(const FInputActionValue &Value)
+void APlayerCharacter::Fire(const FInputActionValue &value)
 {
 	switch (M_CurrentShotType)
 	{
@@ -152,6 +153,12 @@ void APlayerCharacter::FireRedShot()
 		return;
 	}
 
+	UGameConstantManager* constantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
+	if (constantManager == nullptr)
+	{
+		return;
+	}
+
 	const FRotator SpawnRotation = M_Muzzle->GetComponentRotation();
 	const FVector SpawnLocation = M_Muzzle->GetComponentLocation();
 
@@ -167,7 +174,7 @@ void APlayerCharacter::FireRedShot()
 	{
 		// Level 2+: Fire multiple bullets spread out
 		const int32 NumBullets = M_RedShotLevel;
-		constexpr float BulletSpacing = 15.0f;
+		const float BulletSpacing = constantManager->GetFloatValue(FName("Player.RedShot.BulletSpacing"));
 		const FVector RightVector = M_Muzzle->GetRightVector();
 		const float TotalWidth = (NumBullets - 1) * BulletSpacing;
 		const FVector StartLocation = SpawnLocation - (RightVector * (TotalWidth / 2.0f));
@@ -264,6 +271,12 @@ void APlayerCharacter::FireBlueShot()
 		return;
 	}
 
+	UGameConstantManager* ConstantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
+	if (ConstantManager == nullptr)
+	{
+		return;
+	}
+
 	const FVector SpawnLocation = M_Muzzle->GetComponentLocation();
 	const FRotator BaseRotation = M_Muzzle->GetComponentRotation();
 	const int32 NumBullets = (M_BlueShotLevel * 2) - 1;
@@ -279,7 +292,7 @@ void APlayerCharacter::FireBlueShot()
 	else
 	{
 		// Level 2+: Fire a spread of bullets
-		constexpr float TotalAngle = 60.0f;
+		const float TotalAngle = ConstantManager->GetFloatValue(FName("Player.BlueShot.TotalAngle"));
 		const float AngleStep = TotalAngle / (NumBullets - 1);
 		const float StartAngle = -TotalAngle / 2.0f;
 
@@ -295,7 +308,7 @@ void APlayerCharacter::FireBlueShot()
 	}
 }
 
-void APlayerCharacter::Bomb(const FInputActionValue &Value)
+void APlayerCharacter::Bomb(const FInputActionValue &value)
 {
 	if (M_BombStock <= 0)
 	{
@@ -306,7 +319,7 @@ void APlayerCharacter::Bomb(const FInputActionValue &Value)
 	UE_LOG(LogTemp, Log, TEXT("Fired Bomb!"));
 }
 
-void APlayerCharacter::ChangeWeapon(const FInputActionValue &Value)
+void APlayerCharacter::ChangeWeapon(const FInputActionValue &value)
 {
 	UE_LOG(LogTemp, Log, TEXT("Changed Weapon!"));
 	switch (M_CurrentShotType)
@@ -325,24 +338,22 @@ void APlayerCharacter::ChangeWeapon(const FInputActionValue &Value)
 
 void APlayerCharacter::AddBomb()
 {
-	if (M_BombStock < M_MaxBombStock)
+	if (M_BombStock >= M_MaxBombStock)
 	{
-		M_BombStock++;
-	}
-	else
-	{
-		AColorShootingGameMode *GameMode = Cast<AColorShootingGameMode>(UGameplayStatics::GetGameMode(this));
-		if (GameMode == nullptr)
+		AColorShootingGameMode *gameMode = Cast<AColorShootingGameMode>(UGameplayStatics::GetGameMode(this));
+		if (gameMode == nullptr)
 		{
 			return;
 		}
 
-		UGameConstantManager *ConstantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
-		if (ConstantManager != nullptr)
+		UGameConstantManager *constantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
+		if (constantManager != nullptr)
 		{
-			GameMode->AddScore(ConstantManager->GetIntValue(FName("Score.ItemGet")));
+			gameMode->AddScore(constantManager->GetIntValue(FName("Score.ItemGet")));
 		}
+		return;
 	}
+	M_BombStock++;
 }
 
 int32 APlayerCharacter::GetBombStock() const
@@ -350,77 +361,63 @@ int32 APlayerCharacter::GetBombStock() const
 	return M_BombStock;
 }
 
-void APlayerCharacter::AddShotLevel(const EShotType ShotType)
+void APlayerCharacter::AddShotLevel(const EShotType shotType)
 {
-	AColorShootingGameMode *GameMode = Cast<AColorShootingGameMode>(UGameplayStatics::GetGameMode(this));
-	if (GameMode == nullptr)
+	AColorShootingGameMode *gameMode = Cast<AColorShootingGameMode>(UGameplayStatics::GetGameMode(this));
+	if (gameMode == nullptr)
 	{
 		return;
 	}
 
-	switch (ShotType)
+	int32* shotLevel = nullptr;
+	switch (shotType)
 	{
 	case EShotType::Red:
-		if (M_RedShotLevel < M_MaxShotLevel)
-		{
-			M_RedShotLevel++;
-		}
-		else
-		{
-			UGameConstantManager *ConstantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
-			if (ConstantManager != nullptr)
-			{
-				GameMode->AddScore(ConstantManager->GetIntValue(FName("Score.ItemGet")));
-			}
-		}
+		shotLevel = &M_RedShotLevel;
 		break;
 	case EShotType::Green:
-		if (M_GreenShotLevel < M_MaxShotLevel)
-		{
-			M_GreenShotLevel++;
-		}
-		else
-		{
-			UGameConstantManager *ConstantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
-			if (ConstantManager != nullptr)
-			{
-				GameMode->AddScore(ConstantManager->GetIntValue(FName("Score.ItemGet")));
-			}
-		}
+		shotLevel = &M_GreenShotLevel;
 		break;
 	case EShotType::Blue:
-		if (M_BlueShotLevel < M_MaxShotLevel)
-		{
-			M_BlueShotLevel++;
-		}
-		else
-		{
-			UGameConstantManager *ConstantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
-			if (ConstantManager != nullptr)
-			{
-				GameMode->AddScore(ConstantManager->GetIntValue(FName("Score.ItemGet")));
-			}
-		}
+		shotLevel = &M_BlueShotLevel;
 		break;
+	}
+
+	if (shotLevel == nullptr)
+	{
+		return;
+	}
+
+	if (*shotLevel < M_MaxShotLevel)
+	{
+		(*shotLevel)++;
+	}
+	else
+	{
+		UGameConstantManager *constantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
+		if (constantManager != nullptr)
+		{
+			gameMode->AddScore(constantManager->GetIntValue(FName("Score.ItemGet")));
+		}
 	}
 }
 
-void APlayerCharacter::InitializeAndActivateBullet(ABullet* NewBullet, const FVector& SpawnLocation, const FRotator& SpawnRotation, UMaterialInterface* BulletMaterial, EShotType ShotType)
+void APlayerCharacter::InitializeAndActivateBullet(ABullet* newBullet, const FVector& spawnLocation, const FRotator& spawnRotation, UMaterialInterface* bulletMaterial, EShotType shotType)
 {
-	if (NewBullet == nullptr)
+	if (newBullet == nullptr)
 	{
 		return;
 	}
 
-	NewBullet->SetActorLocationAndRotation(SpawnLocation, SpawnRotation);
-	if (BulletMaterial != nullptr)
+	newBullet->SetActorLocationAndRotation(spawnLocation, spawnRotation);
+	if (bulletMaterial != nullptr)
 	{
-		NewBullet->M_BulletMeshComponent->SetMaterial(0, BulletMaterial);
+		newBullet->M_BulletMeshComponent->SetMaterial(0, bulletMaterial);
 	}
-	if (ShotType != EShotType::Max)
+	if (shotType != EShotType::Max)
 	{
-		NewBullet->M_ShotType = ShotType;
+		newBullet->M_ShotType = shotType;
 	}
-	NewBullet->SetActive(true);
-	NewBullet->SetDirection(SpawnRotation.Vector());
+	newBullet->SetActive(true);
+	newBullet->SetDirection(spawnRotation.Vector());
 }

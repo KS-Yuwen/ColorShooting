@@ -5,6 +5,7 @@
 #include "Components/SphereComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Character/EnemyCharacter.h"
+#include "Subsystem/GameConstantManager.h"
 
 AGreenBullet::AGreenBullet()
 {
@@ -12,7 +13,7 @@ AGreenBullet::AGreenBullet()
 	if (M_ProjectileMovementComponent)
 	{
 		M_ProjectileMovementComponent->bIsHomingProjectile = true;
-		M_ProjectileMovementComponent->HomingAccelerationMagnitude = 2000.0f;
+		M_ProjectileMovementComponent->HomingAccelerationMagnitude = 2000.0f; // Fallback value
 	}
 
 	// Re-bind the OnHit event to our specific function
@@ -25,9 +26,24 @@ AGreenBullet::AGreenBullet()
 	M_bHasHitTarget = false;
 }
 
-void AGreenBullet::Tick(float DeltaTime)
+void AGreenBullet::BeginPlay()
 {
-	Super::Tick(DeltaTime);
+	Super::BeginPlay();
+
+	UGameConstantManager* constantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
+	if (constantManager != nullptr)
+	{
+		M_ProjectileMovementComponent->HomingAccelerationMagnitude = constantManager->GetFloatValue(FName("Bullet.GreenBullet.HomingAccelerationMagnitude"));
+	}
+	else
+	{
+		M_ProjectileMovementComponent->HomingAccelerationMagnitude = 2000.0f; // Fallback value
+	}
+}
+
+void AGreenBullet::Tick(float deltaTime)
+{
+	Super::Tick(deltaTime);
 
 	// Stop homing if the target has been hit
 	if (M_bHasHitTarget)
@@ -49,37 +65,44 @@ void AGreenBullet::Tick(float DeltaTime)
 	CheckIfOffScreen();
 }
 
-void AGreenBullet::SetTarget(AActor* NewTarget)
+void AGreenBullet::SetTarget(AActor* newTarget)
 {
-	M_TargetEnemy = NewTarget;
+	M_TargetEnemy = newTarget;
 }
 
-void AGreenBullet::OnGreenBulletHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
+void AGreenBullet::OnGreenBulletHit(UPrimitiveComponent* hitComponent, AActor* otherActor, UPrimitiveComponent* otherComponent, FVector normalImpulse, const FHitResult& hit)
 {
-	if (OtherActor == nullptr || OtherActor == this)
+	if (otherActor == nullptr || otherActor == this)
 	{
 		return;
 	}
 
-	AEnemyCharacter* EnemyCharacter = Cast<AEnemyCharacter>(OtherActor);
-	if (bIsPlayerBullet && EnemyCharacter != nullptr)
+	AEnemyCharacter* enemyCharacter = Cast<AEnemyCharacter>(otherActor);
+	if (M_bIsPlayerBullet && enemyCharacter != nullptr)
 	{
-		if (EnemyCharacter->GetColorType() == M_ShotType)
+		if (enemyCharacter->GetColorType() == M_ShotType)
 		{
 			// Reflect the bullet with a random angle
-			const FVector ReflectionVector = FMath::GetReflectionVector(GetVelocity(), Hit.ImpactNormal);
-			const FVector RandomizedReflectionVector = ReflectionVector + FMath::VRand() * 500.0f;
-			M_ProjectileMovementComponent->Velocity = RandomizedReflectionVector.GetSafeNormal() * M_ProjectileMovementComponent->InitialSpeed;
+			UGameConstantManager* constantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
+			float reflectionRandomness = 500.0f; // Default value
+			if (constantManager != nullptr)
+			{
+				reflectionRandomness = constantManager->GetFloatValue(FName("Bullet.ReflectionRandomness"));
+			}
+
+			const FVector reflectionVector = FMath::GetReflectionVector(GetVelocity(), hit.ImpactNormal);
+			const FVector randomizedReflectionVector = reflectionVector + FMath::VRand() * reflectionRandomness;
+			M_ProjectileMovementComponent->Velocity = randomizedReflectionVector.GetSafeNormal() * M_ProjectileMovementComponent->InitialSpeed;
 
 			// Stop homing
 			M_ProjectileMovementComponent->bIsHomingProjectile = false;
-			bWasReflected = true;
+			M_bWasReflected = true;
 			return; // Don't destroy the bullet
 		}
 	}
 
 	// If it hits an enemy, mark as hit but don't destroy (it penetrates)
-	if (Cast<AEnemyCharacter>(OtherActor))
+	if (Cast<AEnemyCharacter>(otherActor))
 	{
 		M_bHasHitTarget = true;
 	}
@@ -92,20 +115,27 @@ void AGreenBullet::OnGreenBulletHit(UPrimitiveComponent* HitComponent, AActor* O
 
 void AGreenBullet::CheckIfOffScreen()
 {
-	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
-	if (PlayerController == nullptr)
+	APlayerController* playerController = UGameplayStatics::GetPlayerController(this, 0);
+	if (playerController == nullptr)
 	{
 		return;
 	}
 
-	int32 ViewportSizeX, ViewportSizeY;
-	PlayerController->GetViewportSize(ViewportSizeX, ViewportSizeY);
+	int32 viewportSizeX, viewportSizeY;
+	playerController->GetViewportSize(viewportSizeX, viewportSizeY);
 
-	FVector2D ScreenLocation;
-	if (PlayerController->ProjectWorldLocationToScreen(GetActorLocation(), ScreenLocation))
+	FVector2D screenLocation;
+	if (playerController->ProjectWorldLocationToScreen(GetActorLocation(), screenLocation))
 	{
+		UGameConstantManager* constantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
+		float screenMargin = 0.0f; // Default value
+		if (constantManager != nullptr)
+		{
+			screenMargin = constantManager->GetFloatValue(FName("Bullet.OffScreenMargin"));
+		}
+
 		// Destroy if off-screen
-		const bool bIsOffScreen = ScreenLocation.X < 0 || ScreenLocation.X > ViewportSizeX || ScreenLocation.Y < 0 || ScreenLocation.Y > ViewportSizeY;
+		const bool bIsOffScreen = screenLocation.X < -screenMargin || screenLocation.X > viewportSizeX + screenMargin || screenLocation.Y < -screenMargin || screenLocation.Y > viewportSizeY + screenMargin;
 		if (bIsOffScreen)
 		{
 			Destroy();

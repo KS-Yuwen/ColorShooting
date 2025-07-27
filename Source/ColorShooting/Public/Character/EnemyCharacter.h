@@ -34,5 +34,5 @@ protected:
 	virtual void OnDeath();
 
 private:
-	bool bKilledByReflectedBullet = false;
+	bool M_bKilledByReflectedBullet = false;
 };

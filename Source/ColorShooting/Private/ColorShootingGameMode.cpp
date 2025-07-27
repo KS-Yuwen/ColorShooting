@@ -15,29 +15,35 @@ void AColorShootingGameMode::BeginPlay()
     Super::BeginPlay();
 
     // Search Level Camera
-    TArray<AActor*> FoundActors;
-    UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("LevelCamera"), FoundActors);
-    if (FoundActors.Num() > 0)
-    {
-        AActor* LevelCamera = FoundActors[0];
-        if (LevelCamera)
-        {
-            // Set the view target to the level camera
-            APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-            if (PlayerController)
-            {
-                PlayerController->SetViewTargetWithBlend(LevelCamera);
-            }
-        }
-    }
-}
-
-void AColorShootingGameMode::AddScore(const int32 ScoreValue)
-{
-    AColorShootingGameState* GS = GetGameState<AColorShootingGameState>();
-    if (GS == nullptr)
+    TArray<AActor*> foundActors;
+    UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("LevelCamera"), foundActors);
+    if (foundActors.Num() <= 0)
     {
         return;
     }
-    GS->AddScore(ScoreValue);
+
+    AActor* levelCamera = foundActors[0];
+    if (levelCamera == nullptr)
+    {
+        return;
+    }
+
+    // Set the view target to the level camera
+    APlayerController* playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+    if (playerController == nullptr)
+    {
+        return;
+    }
+
+    playerController->SetViewTargetWithBlend(levelCamera);
+}
+
+void AColorShootingGameMode::AddScore(const int32 scoreValue)
+{
+    AColorShootingGameState* gameState = GetGameState<AColorShootingGameState>();
+    if (gameState == nullptr)
+    {
+        return;
+    }
+    gameState->AddScore(scoreValue);
 }

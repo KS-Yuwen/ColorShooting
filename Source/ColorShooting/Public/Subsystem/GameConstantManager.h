@@ -14,12 +14,13 @@ public:
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 	virtual void Deinitialize() override;
 
-	int32 GetIntValue(const FName& ConstantId) const;
+	int32 GetIntValue(const FName& constantId) const;
+	float GetFloatValue(const FName& constantId) const;
 
 private:
 	UPROPERTY()
-	UDataTable* ConstantDataTable;
+	UDataTable* M_ConstantDataTable;
 
 	UPROPERTY()
-	TMap<FName, int32> ConstantMap;
+	TMap<FName, FGameConstant> M_ConstantMap;
 };

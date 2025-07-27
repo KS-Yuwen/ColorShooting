@@ -15,14 +15,15 @@ public:
 	AGreenBullet();
 
 	virtual void Tick(float DeltaTime) override;
+	virtual void BeginPlay() override;
 
 	/** ターゲットを設定します */
-	void SetTarget(AActor* NewTarget);
+		void SetTarget(AActor* newTarget);
 
 protected:
 	/** 弾が何かに当たったときに呼び出されます */
 	UFUNCTION()
-	void OnGreenBulletHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
+	void OnGreenBulletHit(UPrimitiveComponent* hitComponent, AActor* otherActor, UPrimitiveComponent* otherComponent, FVector normalImpulse, const FHitResult& hit);
 
 private:
 	/** 追尾する敵 */

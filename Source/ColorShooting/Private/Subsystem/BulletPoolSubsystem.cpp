@@ -71,7 +71,7 @@ ABullet* UBulletPoolSubsystem::GetBulletFromPool(TSubclassOf<ABullet> BulletClas
 		ABullet* Bullet = Pool.AvailableBullets.Pop();
 		if (Bullet)
 		{
-			Bullet->bIsPlayerBullet = bIsPlayerBullet;
+			Bullet->M_bIsPlayerBullet = bIsPlayerBullet;
 			return Bullet;
 		}
 	}
@@ -86,7 +86,7 @@ ABullet* UBulletPoolSubsystem::GetBulletFromPool(TSubclassOf<ABullet> BulletClas
 	ABullet* NewBullet = World->SpawnActor<ABullet>(BulletClass, FVector::ZeroVector, FRotator::ZeroRotator);
 	if (NewBullet)
 	{
-		NewBullet->bIsPlayerBullet = bIsPlayerBullet;
+		NewBullet->M_bIsPlayerBullet = bIsPlayerBullet;
 		Pool.AllBullets.Add(NewBullet);
 		return NewBullet;
 	}

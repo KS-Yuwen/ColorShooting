@@ -19,5 +19,5 @@ protected:
 public:
 	AColorShootingGameMode();
 
-	void AddScore(const int32 ScoreValue);
+	void AddScore(const int32 scoreValue);
 };

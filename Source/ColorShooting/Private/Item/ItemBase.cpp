@@ -31,9 +31,9 @@ void AItemBase::BeginPlay()
 	}
 }
 
-void AItemBase::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+void AItemBase::OnOverlapBegin(UPrimitiveComponent* overlappedComponent, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool bFromSweep, const FHitResult & sweepResult)
 {
-	if (OtherActor == nullptr || !OtherActor->IsA(APawn::StaticClass()))
+	if (otherActor == nullptr || !otherActor->IsA(APawn::StaticClass()))
 	{
 		return;
 	}

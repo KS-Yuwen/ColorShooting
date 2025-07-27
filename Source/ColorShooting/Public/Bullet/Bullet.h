@@ -56,11 +56,11 @@ public:
 
 	/** この弾がプレイヤーによって発射されたかどうかを判定します。 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Bullet")
-	bool bIsPlayerBullet;
+	bool M_bIsPlayerBullet;
 
 	/** この弾が反射されたものかどうかを判定します。 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Bullet")
-	bool bWasReflected;
+	bool M_bWasReflected;
 
 	/** The color type of this bullet. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Bullet")

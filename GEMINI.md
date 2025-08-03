@@ -10,6 +10,7 @@
 * **ゲームエンジン:** Unreal Engine 5.6
 * **主要言語:** C++ (UE5のReflection System, UObjects, Actors, Components を多用)
 * **スクリプト:** Blueprint (C++で定義された機能を公開し、利用)
+* **IDE:** Visual Studio Code
 
 ## 3. C++ コーディング規約とベストプラクティス
 

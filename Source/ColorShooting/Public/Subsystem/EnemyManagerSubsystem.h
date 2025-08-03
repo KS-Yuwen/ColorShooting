@@ -4,14 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
+#include "Data/EnemySpawnInfo.h" // Include for spawn info struct
 #include "EnemyManagerSubsystem.generated.h"
 
 class AEnemyCharacter;
+class UDataTable;
 
 /**
  * 
  */
-UCLASS()
+UCLASS(BlueprintType)
 class COLORSHOOTING_API UEnemyManagerSubsystem : public UGameInstanceSubsystem
 {
 	GENERATED_BODY()
@@ -39,7 +41,30 @@ public:
 	 */
 	AEnemyCharacter* GetClosestEnemy(const FVector& Location);
 
+	/**
+	 * @brief Starts a stage with the given data table.
+	 * @param StageDataTable The data table containing the enemy spawn information for the stage.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "EnemyManager")
+	void StartStage(UDataTable* StageDataTable);
+
 private:
+	/**
+	 * @brief The main loop for spawning enemies based on the stage data.
+	 */
+	void SpawnLoop();
+
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<AEnemyCharacter>> M_ActiveEnemies;
+
+	UPROPERTY()
+    TObjectPtr<UDataTable> CurrentStageData;
+
+    FTimerHandle SpawnLoopTimerHandle;
+    
+    float StageTime;
+    
+    int32 NextSpawnIndex;
+
+    TArray<FEnemySpawnInfo> SpawnInfos;
 };

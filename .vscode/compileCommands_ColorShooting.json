@@ -224,6 +224,14 @@
 		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
 	},
 	{
+		"file": "F:\\UnrealProject\\ColorShooting\\Source\\ColorShooting\\Public\\Data\\EnemySpawnInfo.h",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",
+			"@F:\\UnrealProject\\ColorShooting\\.vscode\\compileCommands_ColorShooting\\ColorShooting.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
 		"file": "F:\\UnrealProject\\ColorShooting\\Source\\ColorShooting\\Public\\Item\\BombItem.h",
 		"arguments": [
 			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.38.33130\\bin\\Hostx64\\x64\\cl.exe",

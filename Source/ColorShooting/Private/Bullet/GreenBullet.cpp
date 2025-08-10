@@ -6,6 +6,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Character/EnemyCharacter.h"
 #include "Subsystem/GameConstantManager.h"
+#include "Subsystem/BulletPoolSubsystem.h"
 
 AGreenBullet::AGreenBullet()
 {
@@ -14,13 +15,6 @@ AGreenBullet::AGreenBullet()
 	{
 		M_ProjectileMovementComponent->bIsHomingProjectile = true;
 		M_ProjectileMovementComponent->HomingAccelerationMagnitude = 2000.0f; // Fallback value
-	}
-
-	// Re-bind the OnHit event to our specific function
-	if (M_CollisionComponent)
-	{
-		M_CollisionComponent->OnComponentHit.RemoveDynamic(this, &ABullet::OnHit);
-		M_CollisionComponent->OnComponentHit.AddDynamic(this, &AGreenBullet::OnGreenBulletHit);
 	}
 
 	M_bHasHitTarget = false;
@@ -70,19 +64,59 @@ void AGreenBullet::SetTarget(AActor* newTarget)
 	M_TargetEnemy = newTarget;
 }
 
-void AGreenBullet::OnGreenBulletHit(UPrimitiveComponent* hitComponent, AActor* otherActor, UPrimitiveComponent* otherComponent, FVector normalImpulse, const FHitResult& hit)
+void AGreenBullet::SetPierceProperties(int32 MaxPierces)
 {
-	if (otherActor == nullptr || otherActor == this)
+	M_MaxPierces = MaxPierces;
+}
+
+void AGreenBullet::SetActive(bool bIsActive)
+{
+	Super::SetActive(bIsActive);
+
+	if (bIsActive)
+	{
+		M_CurrentPierces = 0;
+		M_bHasHitTarget = false;
+		M_HitEnemies.Empty();
+		if (M_ProjectileMovementComponent)
+		{
+			M_ProjectileMovementComponent->bIsHomingProjectile = true;
+		}
+	}
+}
+
+void AGreenBullet::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	// Safety checks (copied from ABullet::OnOverlapBegin)
+	if (OtherActor == this || OtherActor == GetOwner())
 	{
 		return;
 	}
 
-	AEnemyCharacter* enemyCharacter = Cast<AEnemyCharacter>(otherActor);
-	if (M_bIsPlayerBullet && enemyCharacter != nullptr)
+	// Ignore collisions with other bullets or with slowing fields
+	if (Cast<ABullet>(OtherActor) || Cast<ASlowingField>(OtherActor))
 	{
-		if (enemyCharacter->GetColorType() == M_ShotType)
+		return;
+	}
+
+	UBulletPoolSubsystem* bulletPool = GetGameInstance()->GetSubsystem<UBulletPoolSubsystem>();
+	if (bulletPool == nullptr)
+	{
+		return;
+	}
+
+	AEnemyCharacter* enemyCharacter = Cast<AEnemyCharacter>(OtherActor);
+	if (enemyCharacter != nullptr)
+	{
+		// If the bullet has already hit this enemy, ignore it for piercing purposes.
+		if (M_HitEnemies.Contains(enemyCharacter))
 		{
-			// Reflect the bullet with a random angle
+			return;
+		}
+
+		// Handle same-color reflection (copied from ABullet::OnOverlapBegin)
+		if (M_bIsPlayerBullet && enemyCharacter->GetColorType() == M_ShotType)
+		{
 			UGameConstantManager* constantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
 			float reflectionRandomness = 500.0f; // Default value
 			if (constantManager != nullptr)
@@ -90,26 +124,32 @@ void AGreenBullet::OnGreenBulletHit(UPrimitiveComponent* hitComponent, AActor* o
 				reflectionRandomness = constantManager->GetFloatValue(FName("Bullet.ReflectionRandomness"));
 			}
 
-			const FVector reflectionVector = FMath::GetReflectionVector(GetVelocity(), hit.ImpactNormal);
+			const FVector reflectionVector = FMath::GetReflectionVector(GetVelocity(), SweepResult.ImpactNormal);
 			const FVector randomizedReflectionVector = reflectionVector + FMath::VRand() * reflectionRandomness;
 			M_ProjectileMovementComponent->Velocity = randomizedReflectionVector.GetSafeNormal() * M_ProjectileMovementComponent->InitialSpeed;
 
-			// Stop homing
 			M_ProjectileMovementComponent->bIsHomingProjectile = false;
 			M_bWasReflected = true;
-			return; // Don't destroy the bullet
+			return; // Do not destroy the bullet, as it has been reflected.
 		}
-	}
 
-	// If it hits an enemy, mark as hit but don't destroy (it penetrates)
-	if (Cast<AEnemyCharacter>(otherActor))
-	{
-		M_bHasHitTarget = true;
+		// Apply damage
+		UGameplayStatics::ApplyDamage(enemyCharacter, Damage, GetInstigatorController(), this, UDamageType::StaticClass());
+
+		M_HitEnemies.Add(enemyCharacter);
+		M_CurrentPierces++;
+		M_bHasHitTarget = true; // Stop homing after first hit
+
+		// Check if the bullet should be destroyed (piercing logic)
+		if (M_CurrentPierces >= M_MaxPierces)
+		{
+			bulletPool->ReturnBulletToPool(this);
+		}
 	}
 	else
 	{
-		// If it hits anything else (like a wall), destroy it
-		Destroy();
+		// If it hits anything other than an enemy (like a wall), return it to the pool
+		bulletPool->ReturnBulletToPool(this);
 	}
 }
 
@@ -134,11 +174,18 @@ void AGreenBullet::CheckIfOffScreen()
 			screenMargin = constantManager->GetFloatValue(FName("Bullet.OffScreenMargin"));
 		}
 
-		// Destroy if off-screen
 		const bool bIsOffScreen = screenLocation.X < -screenMargin || screenLocation.X > viewportSizeX + screenMargin || screenLocation.Y < -screenMargin || screenLocation.Y > viewportSizeY + screenMargin;
 		if (bIsOffScreen)
 		{
-			Destroy();
+			UBulletPoolSubsystem* bulletPool = GetGameInstance()->GetSubsystem<UBulletPoolSubsystem>();
+			if (bulletPool != nullptr)
+			{
+				bulletPool->ReturnBulletToPool(this);
+			}
+			else
+			{
+				Destroy();
+			}
 		}
 	}
 }

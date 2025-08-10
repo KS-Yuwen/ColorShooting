@@ -4,11 +4,13 @@
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Character/EnemyCharacter.h"
+#include "Character/PlayerCharacter.h"
 #include "Components/StaticMeshComponent.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Kismet/GameplayStatics.h"
 #include "Subsystem/BulletPoolSubsystem.h"
 #include "Subsystem/GameConstantManager.h"
+#include "Effect/SlowingField.h"
 
 // Sets default values
 ABullet::ABullet()
@@ -20,10 +22,10 @@ ABullet::ABullet()
 	M_CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
 	M_CollisionComponent->InitSphereRadius(5.0f); // Fallback value
 	M_CollisionComponent->SetCollisionProfileName(TEXT("Projectile"));
-	M_CollisionComponent->OnComponentHit.AddDynamic(this, &ABullet::OnHit);
-
-	// Enable hit events
-	M_CollisionComponent->SetNotifyRigidBodyCollision(true);
+	
+	// Set up overlap events
+	M_CollisionComponent->SetGenerateOverlapEvents(true);
+	M_CollisionComponent->OnComponentBeginOverlap.AddDynamic(this, &ABullet::OnOverlapBegin);
 
 	// Set the sphere's collision profile name to "Projectile"
 	RootComponent = M_CollisionComponent;
@@ -57,6 +59,13 @@ ABullet::ABullet()
 
 	// Initialize the bullet as not being from the player by default
 	M_bIsPlayerBullet = false;
+
+	// Load the slowing field blueprint
+	static ConstructorHelpers::FClassFinder<ASlowingField> SlowingFieldBPClass(TEXT("/Game/BluePrints/Effect/BP_SlowingField"));
+	if (SlowingFieldBPClass.Succeeded())
+	{
+		M_SlowingFieldClass = SlowingFieldBPClass.Class;
+	}
 }
 
 // Called when the game starts or when spawned
@@ -116,6 +125,7 @@ void ABullet::SetActive(bool bIsActive)
 		{
 			SetLifeSpan(3.0f); // Fallback value
 		}
+		M_bWasReflected = false; // Reset reflected state when activated
 	}
 	else
 	{
@@ -143,19 +153,41 @@ void ABullet::LifeSpanExpired()
 	bulletPool->ReturnBulletToPool(this);
 }
 
-// Function that is called when the projectile hits something.
-void ABullet::OnHit(UPrimitiveComponent* hitComponent, AActor* otherActor, UPrimitiveComponent* otherComponent, FVector normalImpulse, const FHitResult& hit)
+void ABullet::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	// If the other actor is this bullet itself, do nothing.
-	if (otherActor == this)
+	// DEBUG LOG: Log detailed information about the overlap event.
+	UE_LOG(LogTemp, Warning, TEXT("Bullet Overlap: OtherActor: %s, Owner: %s, WasReflected: %s, IsPlayerBullet: %s"),
+		*GetNameSafe(OtherActor),
+		*GetNameSafe(GetOwner()),
+		M_bWasReflected ? TEXT("True") : TEXT("False"),
+		M_bIsPlayerBullet ? TEXT("True") : TEXT("False")
+	);
+
+	// If the other actor is this bullet itself, or the owner of the bullet, do nothing.
+	// Unless it's a reflected bullet hitting its original owner.
+	if ((OtherActor == this || OtherActor == GetOwner()) && !M_bWasReflected)
 	{
+		return;
+	}
+
+	// Ignore collisions with other bullets or with slowing fields
+	if (Cast<ABullet>(OtherActor) || Cast<ASlowingField>(OtherActor))
+	{
+		return;
+	}
+
+	// NEW CHECK: If this bullet was reflected and it hits the player, ignore it.
+	APlayerCharacter* playerCharacter = Cast<APlayerCharacter>(OtherActor);
+	if (M_bWasReflected && playerCharacter != nullptr)
+	{
+		
 		return;
 	}
 
 	// Handle player bullet hitting an enemy
 	if (M_bIsPlayerBullet)
 	{
-		AEnemyCharacter* enemyCharacter = Cast<AEnemyCharacter>(otherActor);
+		AEnemyCharacter* enemyCharacter = Cast<AEnemyCharacter>(OtherActor);
 		if (enemyCharacter)
 		{
 			// If the enemy's color matches the bullet's color, reflect the bullet.
@@ -168,20 +200,21 @@ void ABullet::OnHit(UPrimitiveComponent* hitComponent, AActor* otherActor, UPrim
 					reflectionRandomness = constantManager->GetFloatValue(FName("Bullet.ReflectionRandomness"));
 				}
 
-				const FVector reflectionVector = FMath::GetReflectionVector(GetVelocity(), hit.ImpactNormal);
+				const FVector reflectionVector = FMath::GetReflectionVector(GetVelocity(), SweepResult.ImpactNormal);
 				const FVector randomizedReflectionVector = reflectionVector + FMath::VRand() * reflectionRandomness;
 				M_ProjectileMovementComponent->Velocity = randomizedReflectionVector.GetSafeNormal() * M_ProjectileMovementComponent->InitialSpeed;
 				M_bWasReflected = true;
 				return; // Do not deactivate the bullet, as it has been reflected.
 			}
-			
-			// If the colors do not match, apply damage to the enemy.
-			UGameplayStatics::ApplyDamage(enemyCharacter, Damage, GetInstigatorController(), this, UDamageType::StaticClass());
+			else // If the colors do not match, apply damage to the enemy.
+			{
+				UGameplayStatics::ApplyDamage(enemyCharacter, Damage, GetInstigatorController(), this, UDamageType::StaticClass());
+			}
 		}
 	}
 
 	// If the hit component is simulating physics, add an impulse.
-	if (otherComponent && otherComponent->IsSimulatingPhysics())
+	if (OtherComp && OtherComp->IsSimulatingPhysics() && playerCharacter == nullptr)
 	{
 		UGameConstantManager* constantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
 		float impulseStrength = 100.0f; // Default value
@@ -189,7 +222,25 @@ void ABullet::OnHit(UPrimitiveComponent* hitComponent, AActor* otherActor, UPrim
 		{
 			impulseStrength = constantManager->GetFloatValue(FName("Bullet.ImpulseStrength"));
 		}
-		otherComponent->AddImpulseAtLocation(GetVelocity() * impulseStrength, GetActorLocation());
+		OtherComp->AddImpulseAtLocation(GetVelocity() * impulseStrength, GetActorLocation());
+	}
+
+	// Spawn slowing field if it's a blue shot and did not hit a player character
+	if (M_ShotType == EShotType::Blue && M_SlowingFieldClass != nullptr && playerCharacter == nullptr)
+	{
+		UWorld* world = GetWorld();
+		if (world)
+		{
+			FActorSpawnParameters spawnParams;
+			spawnParams.Owner = GetOwner();
+			spawnParams.Instigator = GetInstigator();
+
+			ASlowingField* newField = world->SpawnActor<ASlowingField>(M_SlowingFieldClass, SweepResult.ImpactPoint, FRotator::ZeroRotator, spawnParams);
+			if (newField)
+			{
+				newField->InitializeField(M_FieldRadius, M_FieldDuration, M_SlowFactor);
+			}
+		}
 	}
 
 	// Return the bullet to the pool.

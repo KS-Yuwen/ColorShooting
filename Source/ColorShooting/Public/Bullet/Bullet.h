@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Common/ShotType.h"
+#include "Effect/SlowingField.h"
 #include "Bullet.generated.h"
 
 UCLASS()
@@ -70,7 +71,20 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bullet", meta = (ClampMin = "0.0"))
 	float Damage = 1.0f;
 
-	// Function that is called when the projectile hits something.
+	// --- Blue Shot Properties ---
+	UPROPERTY(EditDefaultsOnly, Category = "BlueShot")
+	TSubclassOf<class ASlowingField> M_SlowingFieldClass;
+
+	UPROPERTY(BlueprintReadWrite, Category = "BlueShot")
+	float M_FieldRadius = 100.0f;
+
+	UPROPERTY(BlueprintReadWrite, Category = "BlueShot")
+	float M_FieldDuration = 3.0f;
+
+	UPROPERTY(BlueprintReadWrite, Category = "BlueShot")
+	float M_SlowFactor = 0.5f;
+
+	// Function that is called when the projectile overlaps with something.
 	UFUNCTION()
-	void OnHit(UPrimitiveComponent *HitComponent, AActor *OtherActor, UPrimitiveComponent *OtherComponent, FVector NormalImpulse, const FHitResult &Hit);
+	virtual void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 };

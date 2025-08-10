@@ -17,13 +17,6 @@ AGreenBullet::AGreenBullet()
 		M_ProjectileMovementComponent->HomingAccelerationMagnitude = 2000.0f; // Fallback value
 	}
 
-	// Re-bind the OnHit event to our specific function
-	if (M_CollisionComponent)
-	{
-		M_CollisionComponent->OnComponentHit.RemoveDynamic(this, &ABullet::OnHit);
-		M_CollisionComponent->OnComponentHit.AddDynamic(this, &AGreenBullet::OnGreenBulletHit);
-	}
-
 	M_bHasHitTarget = false;
 }
 
@@ -92,9 +85,16 @@ void AGreenBullet::SetActive(bool bIsActive)
 	}
 }
 
-void AGreenBullet::OnGreenBulletHit(UPrimitiveComponent* hitComponent, AActor* otherActor, UPrimitiveComponent* otherComponent, FVector normalImpulse, const FHitResult& hit)
+void AGreenBullet::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (otherActor == nullptr || otherActor == this)
+	// Safety checks (copied from ABullet::OnOverlapBegin)
+	if (OtherActor == this || OtherActor == GetOwner())
+	{
+		return;
+	}
+
+	// Ignore collisions with other bullets or with slowing fields
+	if (Cast<ABullet>(OtherActor) || Cast<ASlowingField>(OtherActor))
 	{
 		return;
 	}
@@ -105,16 +105,16 @@ void AGreenBullet::OnGreenBulletHit(UPrimitiveComponent* hitComponent, AActor* o
 		return;
 	}
 
-	AEnemyCharacter* enemyCharacter = Cast<AEnemyCharacter>(otherActor);
+	AEnemyCharacter* enemyCharacter = Cast<AEnemyCharacter>(OtherActor);
 	if (enemyCharacter != nullptr)
 	{
-		// If the bullet has already hit this enemy, ignore it.
+		// If the bullet has already hit this enemy, ignore it for piercing purposes.
 		if (M_HitEnemies.Contains(enemyCharacter))
 		{
 			return;
 		}
 
-		// Handle same-color reflection
+		// Handle same-color reflection (copied from ABullet::OnOverlapBegin)
 		if (M_bIsPlayerBullet && enemyCharacter->GetColorType() == M_ShotType)
 		{
 			UGameConstantManager* constantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
@@ -124,13 +124,13 @@ void AGreenBullet::OnGreenBulletHit(UPrimitiveComponent* hitComponent, AActor* o
 				reflectionRandomness = constantManager->GetFloatValue(FName("Bullet.ReflectionRandomness"));
 			}
 
-			const FVector reflectionVector = FMath::GetReflectionVector(GetVelocity(), hit.ImpactNormal);
+			const FVector reflectionVector = FMath::GetReflectionVector(GetVelocity(), SweepResult.ImpactNormal);
 			const FVector randomizedReflectionVector = reflectionVector + FMath::VRand() * reflectionRandomness;
 			M_ProjectileMovementComponent->Velocity = randomizedReflectionVector.GetSafeNormal() * M_ProjectileMovementComponent->InitialSpeed;
 
 			M_ProjectileMovementComponent->bIsHomingProjectile = false;
 			M_bWasReflected = true;
-			return; 
+			return; // Do not destroy the bullet, as it has been reflected.
 		}
 
 		// Apply damage
@@ -140,7 +140,7 @@ void AGreenBullet::OnGreenBulletHit(UPrimitiveComponent* hitComponent, AActor* o
 		M_CurrentPierces++;
 		M_bHasHitTarget = true; // Stop homing after first hit
 
-		// Check if the bullet should be destroyed
+		// Check if the bullet should be destroyed (piercing logic)
 		if (M_CurrentPierces >= M_MaxPierces)
 		{
 			bulletPool->ReturnBulletToPool(this);

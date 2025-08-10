@@ -27,9 +27,8 @@ public:
 	virtual void SetActive(bool bIsActive) override;
 
 protected:
-	/** 弾が何かに当たったときに呼び出されます */
-	UFUNCTION()
-	void OnGreenBulletHit(UPrimitiveComponent* hitComponent, AActor* otherActor, UPrimitiveComponent* otherComponent, FVector normalImpulse, const FHitResult& hit);
+	/** 弾が何かにオーバーラップしたときに呼び出されます */
+	virtual void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
 
 private:
 	/** 追尾する敵 */

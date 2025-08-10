@@ -15,6 +15,7 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Components/SphereComponent.h"
 
 
 APlayerCharacter::APlayerCharacter()
@@ -320,45 +321,68 @@ void APlayerCharacter::FireBlueShot()
 		return;
 	}
 
-	UBulletPoolSubsystem *BulletPoolSubsystem = GetGameInstance()->GetSubsystem<UBulletPoolSubsystem>();
-	if (BulletPoolSubsystem == nullptr)
+	UBulletPoolSubsystem *bulletPoolSubsystem = GetGameInstance()->GetSubsystem<UBulletPoolSubsystem>();
+	if (bulletPoolSubsystem == nullptr)
 	{
 		return;
 	}
 
-	UGameConstantManager* ConstantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
-	if (ConstantManager == nullptr)
+	UGameConstantManager* constantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
+	if (constantManager == nullptr)
 	{
 		return;
 	}
 
-	const FVector SpawnLocation = M_Muzzle->GetComponentLocation();
-	const FRotator BaseRotation = M_Muzzle->GetComponentRotation();
-	const int32 NumBullets = (M_BlueShotLevel * 2) - 1;
+	// --- Level-based enhancements for Slowing Field ---
+	float fieldRadius = 150.0f;
+	float fieldDuration = 2.0f;
+	float slowFactor = 0.6f;
 
-	if (NumBullets <= 1)
+	if (M_BlueShotLevel >= 5)
+	{
+		fieldRadius = 250.0f;
+		fieldDuration = 4.0f;
+		slowFactor = 0.4f;
+	}
+	else if (M_BlueShotLevel >= 3)
+	{
+		fieldRadius = 200.0f;
+		fieldDuration = 3.0f;
+		slowFactor = 0.5f;
+	}
+
+	const FVector spawnLocation = M_Muzzle->GetComponentLocation();
+	const FRotator baseRotation = M_Muzzle->GetComponentRotation();
+	const int32 numBullets = (M_BlueShotLevel * 2) - 1;
+
+	auto spawnAndSetupBullet = [&](const FVector& loc, const FRotator& rot)
+	{
+		if (ABullet *newBullet = Cast<ABullet>(bulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP, true)))
+		{
+			InitializeAndActivateBullet(newBullet, loc, rot, M_BlueBulletMaterial, EShotType::Blue);
+			newBullet->M_FieldRadius = fieldRadius;
+			newBullet->M_FieldDuration = fieldDuration;
+			newBullet->M_SlowFactor = slowFactor;
+		}
+	};
+
+	if (numBullets <= 1)
 	{
 		// Level 1: Fire a single bullet forward
-		if (ABullet *NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP, true)))
-		{
-			InitializeAndActivateBullet(NewBullet, SpawnLocation, BaseRotation, M_BlueBulletMaterial, EShotType::Blue);
-		}
+		spawnAndSetupBullet(spawnLocation, baseRotation);
 	}
 	else
 	{
 		// Level 2+: Fire a spread of bullets
-		const float TotalAngle = ConstantManager->GetFloatValue(FName("Player.BlueShot.TotalAngle"));
-		const float AngleStep = TotalAngle / (NumBullets - 1);
-		const float StartAngle = -TotalAngle / 2.0f;
+		const float totalAngle = constantManager->GetFloatValue(FName("Player.BlueShot.TotalAngle"));
+		const float angleStep = totalAngle / (numBullets - 1);
+		const float startAngle = -totalAngle / 2.0f;
 
-		for (int32 i = 0; i < NumBullets; ++i)
+		for (int32 i = 0; i < numBullets; ++i)
 		{
-			const float CurrentAngle = StartAngle + (i * AngleStep);
-			const FRotator SpawnRotation = BaseRotation + FRotator(0.0f, CurrentAngle, 0.0f);
-			if (ABullet *NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP, true)))
-			{
-				InitializeAndActivateBullet(NewBullet, SpawnLocation, SpawnRotation, M_BlueBulletMaterial, EShotType::Blue);
-			}
+			const float currentAngle = startAngle + (i * angleStep);
+			const FRotator spawnRotation = baseRotation + FRotator(0.0f, currentAngle, 0.0f);
+			spawnAndSetupBullet(spawnLocation, spawnRotation);
 		}
 	}
 }
@@ -462,6 +486,13 @@ void APlayerCharacter::InitializeAndActivateBullet(ABullet* newBullet, const FVe
 	if (newBullet == nullptr)
 	{
 		return;
+	}
+
+	newBullet->SetOwner(this);
+	// Explicitly tell the bullet to ignore the player character
+	if (newBullet->M_CollisionComponent)
+	{
+		newBullet->M_CollisionComponent->IgnoreActorWhenMoving(this, true);
 	}
 
 	newBullet->SetActorLocationAndRotation(spawnLocation, spawnRotation);

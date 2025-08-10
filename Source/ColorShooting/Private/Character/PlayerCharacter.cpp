@@ -14,6 +14,7 @@
 #include "Subsystem/GameConstantManager.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Components/StaticMeshComponent.h"
+#include "GameFramework/ProjectileMovementComponent.h"
 
 
 APlayerCharacter::APlayerCharacter()
@@ -147,8 +148,8 @@ void APlayerCharacter::FireRedShot()
 		return;
 	}
 
-	UBulletPoolSubsystem *BulletPoolSubsystem = GetGameInstance()->GetSubsystem<UBulletPoolSubsystem>();
-	if (BulletPoolSubsystem == nullptr)
+	UBulletPoolSubsystem *bulletPoolSubsystem = GetGameInstance()->GetSubsystem<UBulletPoolSubsystem>();
+	if (bulletPoolSubsystem == nullptr)
 	{
 		return;
 	}
@@ -159,32 +160,52 @@ void APlayerCharacter::FireRedShot()
 		return;
 	}
 
-	const FRotator SpawnRotation = M_Muzzle->GetComponentRotation();
-	const FVector SpawnLocation = M_Muzzle->GetComponentLocation();
+	// --- Level-based enhancements ---
+	float damage = 1.0f;
+	float scaleMultiplier = 1.0f;
+	if (M_RedShotLevel >= 5)
+	{
+		damage = 2.0f;
+		scaleMultiplier = 1.4f;
+	}
+	else if (M_RedShotLevel >= 3)
+	{
+		damage = 1.5f;
+		scaleMultiplier = 1.2f;
+	}
+
+	const FRotator spawnRotation = M_Muzzle->GetComponentRotation();
+	const FVector spawnLocation = M_Muzzle->GetComponentLocation();
+	const float baseScale = constantManager->GetFloatValue(FName("Bullet.MeshScale"));
+	const FVector bulletScale = FVector(baseScale * scaleMultiplier);
 
 	if (M_RedShotLevel == 1)
 	{
 		// Level 1: Fire a single bullet
-		if (ABullet *NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP, true)))
+		if (ABullet *newBullet = Cast<ABullet>(bulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP, true)))
 		{
-			InitializeAndActivateBullet(NewBullet, SpawnLocation, SpawnRotation, M_RedBulletMaterial);
+			InitializeAndActivateBullet(newBullet, spawnLocation, spawnRotation, M_RedBulletMaterial, EShotType::Red);
+			newBullet->Damage = damage;
+			newBullet->M_BulletMeshComponent->SetWorldScale3D(bulletScale);
 		}
 	}
 	else
 	{
 		// Level 2+: Fire multiple bullets spread out
-		const int32 NumBullets = M_RedShotLevel;
-		const float BulletSpacing = constantManager->GetFloatValue(FName("Player.RedShot.BulletSpacing"));
-		const FVector RightVector = M_Muzzle->GetRightVector();
-		const float TotalWidth = (NumBullets - 1) * BulletSpacing;
-		const FVector StartLocation = SpawnLocation - (RightVector * (TotalWidth / 2.0f));
+		const int32 numBullets = M_RedShotLevel;
+		const float bulletSpacing = constantManager->GetFloatValue(FName("Player.RedShot.BulletSpacing"));
+		const FVector rightVector = M_Muzzle->GetRightVector();
+		const float totalWidth = (numBullets - 1) * bulletSpacing;
+		const FVector startLocation = spawnLocation - (rightVector * (totalWidth / 2.0f));
 
-		for (int32 i = 0; i < NumBullets; ++i)
+		for (int32 i = 0; i < numBullets; ++i)
 		{
-			const FVector CurrentSpawnLocation = StartLocation + (RightVector * i * BulletSpacing);
-			if (ABullet *NewBullet = Cast<ABullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP, true)))
+			const FVector currentSpawnLocation = startLocation + (rightVector * i * bulletSpacing);
+			if (ABullet *newBullet = Cast<ABullet>(bulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletBP, true)))
 			{
-				InitializeAndActivateBullet(NewBullet, CurrentSpawnLocation, SpawnRotation, M_RedBulletMaterial);
+				InitializeAndActivateBullet(newBullet, currentSpawnLocation, spawnRotation, M_RedBulletMaterial, EShotType::Red);
+				newBullet->Damage = damage;
+				newBullet->M_BulletMeshComponent->SetWorldScale3D(bulletScale);
 			}
 		}
 	}
@@ -197,62 +218,96 @@ void APlayerCharacter::FireGreenShot()
 		return;
 	}
 
-	// Check fire rate cooldown
-	float FireRate = 0.5f; // Default for levels 1 & 2
+	// --- Level-based enhancements ---
+	float fireRate = 0.5f;
+	int32 numBullets = 1;
+	int32 pierceCount = 1;
+	float speedMultiplier = 1.0f;
+	float homingMultiplier = 1.0f;
+
 	if (M_GreenShotLevel >= 5)
 	{
-		FireRate = 0.2f;
+		fireRate = 0.2f;
+		numBullets = 3;
+		pierceCount = 3;
+		speedMultiplier = 1.5f;
+		homingMultiplier = 1.6f;
+	}
+	else if (M_GreenShotLevel >= 4)
+	{
+		fireRate = 0.3f;
+		numBullets = 3;
+		pierceCount = 2;
+		speedMultiplier = 1.2f;
+		homingMultiplier = 1.3f;
 	}
 	else if (M_GreenShotLevel >= 3)
 	{
-		FireRate = 0.3f;
+		fireRate = 0.3f;
+		numBullets = 2;
+		pierceCount = 2;
+		speedMultiplier = 1.2f;
+		homingMultiplier = 1.3f;
+	}
+	else if (M_GreenShotLevel >= 2)
+	{
+		numBullets = 2;
 	}
 
+	// Check fire rate cooldown
 	const double CurrentTime = GetWorld()->GetTimeSeconds();
-	if (CurrentTime < M_LastGreenShotTime + FireRate)
+	if (CurrentTime < M_LastGreenShotTime + fireRate)
 	{
 		return;
 	}
 	M_LastGreenShotTime = CurrentTime;
 
-	UBulletPoolSubsystem *BulletPoolSubsystem = GetGameInstance()->GetSubsystem<UBulletPoolSubsystem>();
-	if (BulletPoolSubsystem == nullptr)
+	UBulletPoolSubsystem *bulletPoolSubsystem = GetGameInstance()->GetSubsystem<UBulletPoolSubsystem>();
+	if (bulletPoolSubsystem == nullptr)
 	{
 		return;
 	}
 
-	UEnemyManagerSubsystem* EnemyManager = GetGameInstance()->GetSubsystem<UEnemyManagerSubsystem>();
-	if (EnemyManager == nullptr)
+	UEnemyManagerSubsystem* enemyManager = GetGameInstance()->GetSubsystem<UEnemyManagerSubsystem>();
+	if (enemyManager == nullptr)
+	{
+		return;
+	}
+
+	UGameConstantManager* constantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
+	if (constantManager == nullptr)
 	{
 		return;
 	}
 
 	// Find the closest enemy
-	AActor *ClosestEnemy = EnemyManager->GetClosestEnemy(GetActorLocation());
+	AActor *closestEnemy = enemyManager->GetClosestEnemy(GetActorLocation());
 
-	FRotator SpawnRotation = ClosestEnemy ? (ClosestEnemy->GetActorLocation() - GetActorLocation()).Rotation() : GetControlRotation();
+	FRotator spawnRotation = closestEnemy ? (closestEnemy->GetActorLocation() - GetActorLocation()).Rotation() : GetControlRotation();
+	const FVector spawnLocation = M_Muzzle->GetComponentLocation();
 
-	const FVector SpawnLocation = M_Muzzle->GetComponentLocation();
+	// Get base values from ConstantManager
+	const float baseSpeed = constantManager->GetFloatValue(FName("Bullet.InitialSpeed"));
+	const float baseHomingAcceleration = constantManager->GetFloatValue(FName("Bullet.GreenBullet.HomingAccelerationMagnitude"));
 
-	// Determine number of bullets based on level
-	int32 NumBullets = 1;
-	if (M_GreenShotLevel >= 4)
+	for (int32 i = 0; i < numBullets; ++i)
 	{
-		NumBullets = 3;
-	}
-	else if (M_GreenShotLevel >= 2)
-	{
-		NumBullets = 2;
-	}
-
-	for (int32 i = 0; i < NumBullets; ++i)
-	{
-		if (AGreenBullet *NewBullet = Cast<AGreenBullet>(BulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletGreenBP, true)))
+		if (AGreenBullet *newBullet = Cast<AGreenBullet>(bulletPoolSubsystem->GetBulletFromPool(M_PlayerBulletGreenBP, true)))
 		{
-			InitializeAndActivateBullet(NewBullet, SpawnLocation, SpawnRotation);
-			if (ClosestEnemy)
+			InitializeAndActivateBullet(newBullet, spawnLocation, spawnRotation, nullptr, EShotType::Green);
+			
+			// Set enhanced properties
+			newBullet->SetPierceProperties(pierceCount);
+			if (newBullet->M_ProjectileMovementComponent)
 			{
-				NewBullet->SetTarget(ClosestEnemy);
+				newBullet->M_ProjectileMovementComponent->InitialSpeed = baseSpeed * speedMultiplier;
+				newBullet->M_ProjectileMovementComponent->MaxSpeed = baseSpeed * speedMultiplier;
+				newBullet->M_ProjectileMovementComponent->HomingAccelerationMagnitude = baseHomingAcceleration * homingMultiplier;
+			}
+
+			if (closestEnemy)
+			{
+				newBullet->SetTarget(closestEnemy);
 			}
 		}
 	}

@@ -26,7 +26,7 @@ public:
 
 	virtual void LifeSpanExpired() override;
 
-	void SetActive(bool bIsActive);
+	virtual void SetActive(bool bIsActive);
 
 	/**
 	 * @brief Sets the direction of the bullet's movement.

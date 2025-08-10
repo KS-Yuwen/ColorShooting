@@ -161,19 +161,12 @@ void APlayerCharacter::FireRedShot()
 		return;
 	}
 
-	// --- Level-based enhancements ---
-	float damage = 1.0f;
-	float scaleMultiplier = 1.0f;
-	if (M_RedShotLevel >= 5)
-	{
-		damage = 2.0f;
-		scaleMultiplier = 1.4f;
-	}
-	else if (M_RedShotLevel >= 3)
-	{
-		damage = 1.5f;
-		scaleMultiplier = 1.2f;
-	}
+	// --- Level-based enhancements from DataTable ---
+	FString damageKey = FString::Printf(TEXT("Player.RedShot.Damage.Level%d"), M_RedShotLevel);
+	float damage = constantManager->GetFloatValue(FName(*damageKey));
+
+	FString scaleKey = FString::Printf(TEXT("Player.RedShot.Scale.Level%d"), M_RedShotLevel);
+	float scaleMultiplier = constantManager->GetFloatValue(FName(*scaleKey));
 
 	const FRotator spawnRotation = M_Muzzle->GetComponentRotation();
 	const FVector spawnLocation = M_Muzzle->GetComponentLocation();
@@ -219,41 +212,27 @@ void APlayerCharacter::FireGreenShot()
 		return;
 	}
 
-	// --- Level-based enhancements ---
-	float fireRate = 0.5f;
-	int32 numBullets = 1;
-	int32 pierceCount = 1;
-	float speedMultiplier = 1.0f;
-	float homingMultiplier = 1.0f;
+	UGameConstantManager* constantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
+	if (constantManager == nullptr)
+	{
+		return;
+	}
 
-	if (M_GreenShotLevel >= 5)
-	{
-		fireRate = 0.2f;
-		numBullets = 3;
-		pierceCount = 3;
-		speedMultiplier = 1.5f;
-		homingMultiplier = 1.6f;
-	}
-	else if (M_GreenShotLevel >= 4)
-	{
-		fireRate = 0.3f;
-		numBullets = 3;
-		pierceCount = 2;
-		speedMultiplier = 1.2f;
-		homingMultiplier = 1.3f;
-	}
-	else if (M_GreenShotLevel >= 3)
-	{
-		fireRate = 0.3f;
-		numBullets = 2;
-		pierceCount = 2;
-		speedMultiplier = 1.2f;
-		homingMultiplier = 1.3f;
-	}
-	else if (M_GreenShotLevel >= 2)
-	{
-		numBullets = 2;
-	}
+	// --- Level-based enhancements from DataTable ---
+	FString fireRateKey = FString::Printf(TEXT("Player.GreenShot.FireRate.Level%d"), M_GreenShotLevel);
+	float fireRate = constantManager->GetFloatValue(FName(*fireRateKey));
+
+	FString numBulletsKey = FString::Printf(TEXT("Player.GreenShot.NumBullets.Level%d"), M_GreenShotLevel);
+	int32 numBullets = constantManager->GetIntValue(FName(*numBulletsKey));
+
+	FString pierceCountKey = FString::Printf(TEXT("Player.GreenShot.PierceCount.Level%d"), M_GreenShotLevel);
+	int32 pierceCount = constantManager->GetIntValue(FName(*pierceCountKey));
+
+	FString speedMultiplierKey = FString::Printf(TEXT("Player.GreenShot.SpeedMultiplier.Level%d"), M_GreenShotLevel);
+	float speedMultiplier = constantManager->GetFloatValue(FName(*speedMultiplierKey));
+
+	FString homingMultiplierKey = FString::Printf(TEXT("Player.GreenShot.HomingMultiplier.Level%d"), M_GreenShotLevel);
+	float homingMultiplier = constantManager->GetFloatValue(FName(*homingMultiplierKey));
 
 	// Check fire rate cooldown
 	const double CurrentTime = GetWorld()->GetTimeSeconds();
@@ -271,12 +250,6 @@ void APlayerCharacter::FireGreenShot()
 
 	UEnemyManagerSubsystem* enemyManager = GetGameInstance()->GetSubsystem<UEnemyManagerSubsystem>();
 	if (enemyManager == nullptr)
-	{
-		return;
-	}
-
-	UGameConstantManager* constantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
-	if (constantManager == nullptr)
 	{
 		return;
 	}
@@ -333,23 +306,15 @@ void APlayerCharacter::FireBlueShot()
 		return;
 	}
 
-	// --- Level-based enhancements for Slowing Field ---
-	float fieldRadius = 150.0f;
-	float fieldDuration = 2.0f;
-	float slowFactor = 0.6f;
+	// --- Level-based enhancements for Slowing Field from DataTable ---
+	FString fieldRadiusKey = FString::Printf(TEXT("Player.BlueShot.FieldRadius.Level%d"), M_BlueShotLevel);
+	float fieldRadius = constantManager->GetFloatValue(FName(*fieldRadiusKey));
 
-	if (M_BlueShotLevel >= 5)
-	{
-		fieldRadius = 250.0f;
-		fieldDuration = 4.0f;
-		slowFactor = 0.4f;
-	}
-	else if (M_BlueShotLevel >= 3)
-	{
-		fieldRadius = 200.0f;
-		fieldDuration = 3.0f;
-		slowFactor = 0.5f;
-	}
+	FString fieldDurationKey = FString::Printf(TEXT("Player.BlueShot.FieldDuration.Level%d"), M_BlueShotLevel);
+	float fieldDuration = constantManager->GetFloatValue(FName(*fieldDurationKey));
+
+	FString slowFactorKey = FString::Printf(TEXT("Player.BlueShot.SlowFactor.Level%d"), M_BlueShotLevel);
+	float slowFactor = constantManager->GetFloatValue(FName(*slowFactorKey));
 
 	const FVector spawnLocation = M_Muzzle->GetComponentLocation();
 	const FRotator baseRotation = M_Muzzle->GetComponentRotation();

@@ -125,6 +125,7 @@ void ABullet::SetActive(bool bIsActive)
 		{
 			SetLifeSpan(3.0f); // Fallback value
 		}
+		M_bWasReflected = false; // Reset reflected state when activated
 	}
 	else
 	{
@@ -154,8 +155,17 @@ void ABullet::LifeSpanExpired()
 
 void ABullet::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	// DEBUG LOG: Log detailed information about the overlap event.
+	UE_LOG(LogTemp, Warning, TEXT("Bullet Overlap: OtherActor: %s, Owner: %s, WasReflected: %s, IsPlayerBullet: %s"),
+		*GetNameSafe(OtherActor),
+		*GetNameSafe(GetOwner()),
+		M_bWasReflected ? TEXT("True") : TEXT("False"),
+		M_bIsPlayerBullet ? TEXT("True") : TEXT("False")
+	);
+
 	// If the other actor is this bullet itself, or the owner of the bullet, do nothing.
-	if (OtherActor == this || OtherActor == GetOwner())
+	// Unless it's a reflected bullet hitting its original owner.
+	if ((OtherActor == this || OtherActor == GetOwner()) && !M_bWasReflected)
 	{
 		return;
 	}
@@ -163,6 +173,14 @@ void ABullet::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* O
 	// Ignore collisions with other bullets or with slowing fields
 	if (Cast<ABullet>(OtherActor) || Cast<ASlowingField>(OtherActor))
 	{
+		return;
+	}
+
+	// NEW CHECK: If this bullet was reflected and it hits the player, ignore it.
+	APlayerCharacter* playerCharacter = Cast<APlayerCharacter>(OtherActor);
+	if (M_bWasReflected && playerCharacter != nullptr)
+	{
+		
 		return;
 	}
 
@@ -188,14 +206,15 @@ void ABullet::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* O
 				M_bWasReflected = true;
 				return; // Do not deactivate the bullet, as it has been reflected.
 			}
-			
-			// If the colors do not match, apply damage to the enemy.
-			UGameplayStatics::ApplyDamage(enemyCharacter, Damage, GetInstigatorController(), this, UDamageType::StaticClass());
+			else // If the colors do not match, apply damage to the enemy.
+			{
+				UGameplayStatics::ApplyDamage(enemyCharacter, Damage, GetInstigatorController(), this, UDamageType::StaticClass());
+			}
 		}
 	}
 
 	// If the hit component is simulating physics, add an impulse.
-	if (OtherComp && OtherComp->IsSimulatingPhysics())
+	if (OtherComp && OtherComp->IsSimulatingPhysics() && playerCharacter == nullptr)
 	{
 		UGameConstantManager* constantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
 		float impulseStrength = 100.0f; // Default value
@@ -207,7 +226,6 @@ void ABullet::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* O
 	}
 
 	// Spawn slowing field if it's a blue shot and did not hit a player character
-	APlayerCharacter* playerCharacter = Cast<APlayerCharacter>(OtherActor);
 	if (M_ShotType == EShotType::Blue && M_SlowingFieldClass != nullptr && playerCharacter == nullptr)
 	{
 		UWorld* world = GetWorld();

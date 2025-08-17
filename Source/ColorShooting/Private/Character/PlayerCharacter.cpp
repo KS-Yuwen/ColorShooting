@@ -1,6 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Character/PlayerCharacter.h"
+#include "Subsystem/SoundManagerSubsystem.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Kismet/GameplayStatics.h"
@@ -128,6 +129,12 @@ void APlayerCharacter::Look(const FInputActionValue &value)
 
 void APlayerCharacter::Fire(const FInputActionValue &value)
 {
+	USoundManagerSubsystem* soundManager = GetGameInstance()->GetSubsystem<USoundManagerSubsystem>();
+	if (soundManager != nullptr)
+	{
+		soundManager->PlaySE(M_FireSoundName);
+	}
+
 	switch (M_CurrentShotType)
 	{
 	case EShotType::Red:
@@ -359,12 +366,24 @@ void APlayerCharacter::Bomb(const FInputActionValue &value)
 		return;
 	}
 
+	USoundManagerSubsystem* soundManager = GetGameInstance()->GetSubsystem<USoundManagerSubsystem>();
+	if (soundManager != nullptr)
+	{
+		soundManager->PlaySE(M_BombSoundName);
+	}
+
 	M_BombStock--;
 	UE_LOG(LogTemp, Log, TEXT("Fired Bomb!"));
 }
 
 void APlayerCharacter::ChangeWeapon(const FInputActionValue &value)
 {
+	USoundManagerSubsystem* soundManager = GetGameInstance()->GetSubsystem<USoundManagerSubsystem>();
+	if (soundManager != nullptr)
+	{
+		soundManager->PlaySE(M_ChangeWeaponSoundName);
+	}
+
 	UE_LOG(LogTemp, Log, TEXT("Changed Weapon!"));
 	switch (M_CurrentShotType)
 	{

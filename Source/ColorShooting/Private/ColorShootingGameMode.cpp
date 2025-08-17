@@ -1,5 +1,6 @@
 
 #include "ColorShootingGameMode.h"
+#include "Subsystem/SoundManagerSubsystem.h"
 #include "ColorShootingGameState.h"
 #include "UI/PlayerHUD.h"
 #include "Kismet/GameplayStatics.h"
@@ -13,6 +14,12 @@ AColorShootingGameMode::AColorShootingGameMode()
 void AColorShootingGameMode::BeginPlay()
 {
     Super::BeginPlay();
+
+	USoundManagerSubsystem* soundManager = GetGameInstance()->GetSubsystem<USoundManagerSubsystem>();
+	if (soundManager != nullptr)
+	{
+		soundManager->PlayBGM(M_StageBGMSoundName);
+	}
 
     // Search Level Camera
     TArray<AActor*> foundActors;

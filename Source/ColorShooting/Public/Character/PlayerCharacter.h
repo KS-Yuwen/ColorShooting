@@ -18,6 +18,16 @@ class COLORSHOOTING_API APlayerCharacter : public ACharacterBase
 {
 	GENERATED_BODY()
 
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sound")
+	FName M_FireSoundName = TEXT("PlayerFire");
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sound")
+	FName M_BombSoundName = TEXT("PlayerBomb");
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sound")
+	FName M_ChangeWeaponSoundName = TEXT("PlayerChangeWeapon");
+
 public:
 	APlayerCharacter();
 

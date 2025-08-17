@@ -34,7 +34,6 @@ public:
 private:
 	void LoadSoundDataAssets();
 
-private:
 	UPROPERTY()
 	TMap<FName, TObjectPtr<USoundDataAsset>> M_SoundDataAssets;
 

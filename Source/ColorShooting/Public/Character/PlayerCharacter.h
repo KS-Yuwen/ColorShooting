@@ -18,32 +18,19 @@ class COLORSHOOTING_API APlayerCharacter : public ACharacterBase
 {
 	GENERATED_BODY()
 
-protected:
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sound")
-	FName M_FireSoundName = TEXT("PlayerFire");
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sound")
-	FName M_BombSoundName = TEXT("PlayerBomb");
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sound")
-	FName M_ChangeWeaponSoundName = TEXT("PlayerChangeWeapon");
-
 public:
 	APlayerCharacter();
 
-protected:
-	virtual void BeginPlay() override;
-
-public:
+	//~ Begin AActor Interface
 	virtual void Tick(float DeltaTime) override;
-
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	//~ End AActor Interface
 
-public:
 	/** Adds one bomb to the stock */
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	void AddBomb();
 
+	/** Gets the current number of bombs in stock */
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	int32 GetBombStock() const;
 
@@ -55,101 +42,92 @@ public:
 	void AddShotLevel(const EShotType shotType);
 
 protected:
-	// Input Mapping Context
+	//~ Begin AActor Interface
+	virtual void BeginPlay() override;
+	//~ End AActor Interface
+
+	//~ Begin Input
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputMappingContext> M_PlayerMappingContext;
 
-	// Move Input Action
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> M_MoveAction;
 
-	// Look Input Action
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> M_LookAction;
 
-	// Fire Input Action
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> M_FireAction;
 
-	// Bomb Input Action
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> M_BombAction;
 
-	// Change Weapon Input Action
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
 	TObjectPtr<UInputAction> M_ChangeWeaponAction;
 
-	// Handles move input
 	void Move(const FInputActionValue& value);
-	// Handles look input
 	void Look(const FInputActionValue& value);
-	// Handles fire input
 	void Fire(const FInputActionValue& value);
-	// Handles bomb input
 	void Bomb(const FInputActionValue& value);
-	// Handles weapon change input
 	void ChangeWeapon(const FInputActionValue& value);
+	//~ End Input
+
+	//~ Begin Sound
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sound")
+	FName M_FireSoundName = TEXT("PlayerFire");
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sound")
+	FName M_BombSoundName = TEXT("PlayerBomb");
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sound")
+	FName M_ChangeWeaponSoundName = TEXT("PlayerChangeWeapon");
+	//~ End Sound
 
 private:
-	// Fires the red shot type
 	void FireRedShot();
-	// Fires the green shot type
 	void FireGreenShot();
-	// Fires the blue shot type
 	void FireBlueShot();
 
-	/**
-	 * @brief Initializes and activates a bullet with the given parameters.
-	 * @param newBullet The bullet actor to initialize.
-	 * @param spawnLocation The location to spawn the bullet.
-	 * @param spawnRotation The rotation of the bullet.
-	 * @param bulletMaterial The material to apply to the bullet (optional).
-	 * @param shotType The shot type of the bullet (optional).
-	 */
 	void InitializeAndActivateBullet(ABullet* newBullet, const FVector& spawnLocation, const FRotator& spawnRotation, UMaterialInterface* bulletMaterial = nullptr, EShotType shotType = EShotType::Max);
 
-private:
-	/** Current number of bombs in stock */
+	//~ Begin Status
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
 	int32 M_BombStock = 0;
 
-	/** Current selected shot type */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
 	EShotType M_CurrentShotType = EShotType::Red;
 
-	/** Current level of the red shot */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
 	int32 M_RedShotLevel = 0;
 
-	/** Current level of the green shot */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
 	int32 M_GreenShotLevel = 0;
 
-	/** Current level of the blue shot */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
 	int32 M_BlueShotLevel = 0;
 
-	/** Max level of the shot */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
 	int32 M_MaxShotLevel = 0;
 
-	/** Max number of bombs in stock */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Status", meta = (AllowPrivateAccess = "true"))
 	int32 M_MaxBombStock = 0;
+	//~ End Status
 
-private:
-	/** Timestamp of the last green shot fire */
+	//~ Begin Internal State
 	double M_LastGreenShotTime = 0.0;
+	//~ End Internal State
 
-	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
+	//~ Begin Projectile Assets
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class ABullet> M_PlayerBulletBP;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class AGreenBullet> M_PlayerBulletGreenBP;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UMaterialInterface> M_RedBulletMaterial;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UMaterialInterface> M_BlueBulletMaterial;
+	//~ End Projectile Assets
 };

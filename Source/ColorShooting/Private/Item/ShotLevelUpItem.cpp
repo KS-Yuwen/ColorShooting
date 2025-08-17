@@ -1,6 +1,8 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Item/ShotLevelUpItem.h"
+#include "Subsystem/SoundManagerSubsystem.h"
+#include "Kismet/GameplayStatics.h"
 #include "Character/PlayerCharacter.h"
 #include "TimerManager.h"
 #include "Subsystem/GameConstantManager.h"
@@ -55,6 +57,12 @@ void AShotLevelUpItem::OnOverlapBegin(UPrimitiveComponent* overlappedComponent, 
     {
         return;
     }
+
+	USoundManagerSubsystem* soundManager = GetGameInstance()->GetSubsystem<USoundManagerSubsystem>();
+	if (soundManager != nullptr)
+	{
+		soundManager->PlaySE(M_PickupSoundName);
+	}
 
     playerCharacter->AddShotLevel(M_ShotType);
     OnCollected();

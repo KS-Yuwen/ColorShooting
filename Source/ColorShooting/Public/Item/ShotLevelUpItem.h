@@ -38,4 +38,8 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Materials")
 	TObjectPtr<class UMaterialInstanceConstant> M_BlueMaterial;
+
+private:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sound", meta = (AllowPrivateAccess = "true"))
+	FName M_PickupSoundName = TEXT("ItemPickup");
 };

@@ -155,14 +155,6 @@ void ABullet::LifeSpanExpired()
 
 void ABullet::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	// DEBUG LOG: Log detailed information about the overlap event.
-	UE_LOG(LogTemp, Warning, TEXT("Bullet Overlap: OtherActor: %s, Owner: %s, WasReflected: %s, IsPlayerBullet: %s"),
-		*GetNameSafe(OtherActor),
-		*GetNameSafe(GetOwner()),
-		M_bWasReflected ? TEXT("True") : TEXT("False"),
-		M_bIsPlayerBullet ? TEXT("True") : TEXT("False")
-	);
-
 	// If the other actor is this bullet itself, or the owner of the bullet, do nothing.
 	// Unless it's a reflected bullet hitting its original owner.
 	if ((OtherActor == this || OtherActor == GetOwner()) && !M_bWasReflected)
@@ -211,6 +203,11 @@ void ABullet::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* O
 				UGameplayStatics::ApplyDamage(enemyCharacter, Damage, GetInstigatorController(), this, UDamageType::StaticClass());
 			}
 		}
+	}
+	// Handle enemy bullet hitting the player
+	else if (playerCharacter)
+	{
+		UGameplayStatics::ApplyDamage(playerCharacter, Damage, GetInstigatorController(), this, UDamageType::StaticClass());
 	}
 
 	// If the hit component is simulating physics, add an impulse.

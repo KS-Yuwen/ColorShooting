@@ -4,6 +4,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Subsystem/GameConstantManager.h"
 #include "Subsystem/EnemyManagerSubsystem.h"
+#include "TimerManager.h"
 
 AEnemyCharacter::AEnemyCharacter()
 {
@@ -21,10 +22,17 @@ void AEnemyCharacter::BeginPlay()
 		return;
 	}
 	enemyManager->RegisterEnemy(this);
+
+	// Start firing timer with a random initial delay
+	const float initialDelay = FMath::RandRange(0.5f, 2.0f);
+	GetWorldTimerManager().SetTimer(M_FireTimerHandle, this, &AEnemyCharacter::Fire, M_FireRate, true, initialDelay);
 }
 
 void AEnemyCharacter::EndPlay(const EEndPlayReason::Type endPlayReason)
 {
+	// Clear timer
+	GetWorldTimerManager().ClearTimer(M_FireTimerHandle);
+
 	// Unregister from the EnemyManagerSubsystem
 	UEnemyManagerSubsystem* enemyManager = GetWorld()->GetGameInstance()->GetSubsystem<UEnemyManagerSubsystem>();
 	if (enemyManager == nullptr)
@@ -40,6 +48,41 @@ void AEnemyCharacter::EndPlay(const EEndPlayReason::Type endPlayReason)
 void AEnemyCharacter::Tick(float deltaTime)
 {
 	Super::Tick(deltaTime);
+}
+
+void AEnemyCharacter::Fire()
+{
+	if (M_ProjectileClass == nullptr)
+	{
+		return;
+	}
+
+	UWorld* const world = GetWorld();
+	if (world == nullptr)
+	{
+		return;
+	}
+
+	APawn* playerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
+	if (playerPawn == nullptr)
+	{
+		return;
+	}
+
+	const FVector fireLocation = GetActorLocation();
+	const FRotator fireRotation = (playerPawn->GetActorLocation() - fireLocation).Rotation();
+
+	FActorSpawnParameters spawnParams;
+	spawnParams.Owner = this;
+	spawnParams.Instigator = GetInstigator();
+	spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	ABullet* bullet = world->SpawnActor<ABullet>(M_ProjectileClass, fireLocation, fireRotation, spawnParams);
+	if (bullet)
+	{
+		bullet->M_bIsPlayerBullet = false;
+		bullet->M_ShotType = M_ColorType;
+	}
 }
 
 float AEnemyCharacter::TakeDamage(float damageAmount, FDamageEvent const& damageEvent, AController* eventInstigator, AActor* damageCauser)

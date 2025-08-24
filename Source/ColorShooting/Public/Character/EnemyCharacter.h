@@ -5,6 +5,8 @@
 #include "Common/ShotType.h"
 #include "EnemyCharacter.generated.h"
 
+class ABullet;
+
 // 敵キャラクタークラス
 UCLASS()
 class COLORSHOOTING_API AEnemyCharacter : public ACharacterBase
@@ -19,6 +21,14 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy")
 	EShotType M_ColorType = EShotType::Red;
 
+	// 発射する弾のクラス
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	TSubclassOf<ABullet> M_ProjectileClass;
+
+	// 攻撃の頻度（秒）
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+	float M_FireRate = 1.0f;
+
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
@@ -31,8 +41,14 @@ public:
 	EShotType GetColorType() const { return M_ColorType; }
 
 protected:
+	// 攻撃処理
+	virtual void Fire();
+
 	virtual void OnDeath();
 
 private:
 	bool M_bKilledByReflectedBullet = false;
+
+	// 攻撃タイマーのハンドル
+	FTimerHandle M_FireTimerHandle;
 };

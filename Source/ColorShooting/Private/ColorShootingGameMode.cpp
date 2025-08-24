@@ -1,9 +1,12 @@
 
 #include "ColorShootingGameMode.h"
 #include "Subsystem/SoundManagerSubsystem.h"
+#include "Subsystem/GameConstantManager.h"
 #include "ColorShootingGameState.h"
 #include "UI/PlayerHUD.h"
 #include "Kismet/GameplayStatics.h"
+#include "Character/PlayerCharacter.h"
+#include "TimerManager.h"
 
 AColorShootingGameMode::AColorShootingGameMode()
 {
@@ -21,6 +24,59 @@ void AColorShootingGameMode::BeginPlay()
 		soundManager->PlayBGM(M_StageBGMSoundName);
 	}
 
+    SetLevelCameraActive();
+}
+
+void AColorShootingGameMode::AddScore(const int32 scoreValue)
+{
+    AColorShootingGameState* gameState = GetGameState<AColorShootingGameState>();
+    if (gameState == nullptr)
+    {
+        return;
+    }
+    gameState->AddScore(scoreValue);
+}
+
+void AColorShootingGameMode::PlayerDied(APlayerCharacter* DeadPlayer)
+{
+	AColorShootingGameState* gameState = GetGameState<AColorShootingGameState>();
+	if (gameState == nullptr)
+	{
+		return;
+	}
+
+	gameState->RemoveLife();
+
+	if (gameState->GetLives() > 0)
+	{
+		// Respawn the player after a delay
+		GetWorldTimerManager().SetTimer(M_RespawnTimerHandle, this, &AColorShootingGameMode::RespawnPlayer, M_RespawnDelay, false);
+	}
+	else
+	{
+		// No lives left, game over
+		GameOver();
+	}
+}
+
+void AColorShootingGameMode::RespawnPlayer()
+{
+	APlayerController* playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	if (playerController)
+	{
+		RestartPlayer(playerController);
+		SetLevelCameraActive();
+	}
+}
+
+void AColorShootingGameMode::GameOver()
+{
+	UE_LOG(LogTemp, Log, TEXT("GAME OVER"));
+	// TODO: Implement game over screen and logic
+}
+
+void AColorShootingGameMode::SetLevelCameraActive()
+{
     // Search Level Camera
     TArray<AActor*> foundActors;
     UGameplayStatics::GetAllActorsWithTag(GetWorld(), FName("LevelCamera"), foundActors);
@@ -43,14 +99,4 @@ void AColorShootingGameMode::BeginPlay()
     }
 
     playerController->SetViewTargetWithBlend(levelCamera);
-}
-
-void AColorShootingGameMode::AddScore(const int32 scoreValue)
-{
-    AColorShootingGameState* gameState = GetGameState<AColorShootingGameState>();
-    if (gameState == nullptr)
-    {
-        return;
-    }
-    gameState->AddScore(scoreValue);
 }

@@ -1,6 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Character/PlayerCharacter.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Subsystem/SoundManagerSubsystem.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -490,4 +491,77 @@ void APlayerCharacter::InitializeAndActivateBullet(ABullet* newBullet, const FVe
 	}
 	newBullet->SetActive(true);
 	newBullet->SetDirection(spawnRotation.Vector());
+}
+
+float APlayerCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+    // 無敵状態ならダメージを受けない
+    if (M_bIsInvincible || M_bIsDead)
+    {
+        return 0.0f;
+    }
+
+    // 敵の弾以外は無視
+    const ABullet* bullet = Cast<ABullet>(DamageCauser);
+    if (bullet == nullptr || bullet->M_bIsPlayerBullet)
+    {
+        return 0.0f;
+    }
+
+    const float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+    if (ActualDamage > 0.0f)
+    {
+        // 無敵状態を開始
+        M_bIsInvincible = true;
+        GetWorldTimerManager().SetTimer(M_InvincibilityTimerHandle, this, &APlayerCharacter::EndInvincibility, M_InvincibilityDuration, false);
+
+        // 被弾サウンドを再生
+        USoundManagerSubsystem* soundManager = GetGameInstance()->GetSubsystem<USoundManagerSubsystem>();
+        if (soundManager != nullptr)
+        {
+            soundManager->PlaySE(M_DamageSoundName);
+        }
+
+        // TODO: Add visual feedback for invincibility (e.g., blinking mesh)
+    }
+
+    return ActualDamage;
+}
+
+void APlayerCharacter::EndInvincibility()
+{
+    M_bIsInvincible = false;
+    // TODO: End visual feedback for invincibility
+}
+
+void APlayerCharacter::OnDeath_Implementation()
+{
+    // 死亡エフェクトとサウンドを再生
+    if (M_DeathVFX)
+    {
+        UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), M_DeathVFX, GetActorLocation());
+    }
+    USoundManagerSubsystem* soundManager = GetGameInstance()->GetSubsystem<USoundManagerSubsystem>();
+    if (soundManager != nullptr)
+    {
+        soundManager->PlaySE(M_DeathSoundName);
+    }
+
+    // プレイヤーの見た目を消し、コリジョンを無効化
+    SetActorEnableCollision(false);
+    SetActorHiddenInGame(true);
+
+    // コントローラーから切り離し、入力を無効化
+    DetachFromControllerPendingDestroy();
+
+    // ゲームモードに死亡を通知
+    AColorShootingGameMode* gameMode = GetWorld()->GetAuthGameMode<AColorShootingGameMode>();
+    if (gameMode)
+    {
+        gameMode->PlayerDied(this);
+    }
+
+    // 基底クラスの処理は呼ばない (Destroy() させないため)
+    // Super::OnDeath_Implementation();
 }

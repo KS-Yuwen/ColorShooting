@@ -1,5 +1,6 @@
 #include "UI/PlayerHUD.h"
 #include "Blueprint/UserWidget.h"
+#include "ColorShootingGameState.h"
 
 APlayerHUD::APlayerHUD()
 {
@@ -19,9 +20,21 @@ void APlayerHUD::BeginPlay()
 			PlayerHUDWidget->AddToViewport();
 		}
 	}
+
+	// Bind to the OnLivesChanged event in the GameState
+	AColorShootingGameState* gameState = GetWorld()->GetGameState<AColorShootingGameState>();
+	if (gameState)
+	{
+		// Bind to receive all FUTURE updates.
+		gameState->OnLivesChanged.AddDynamic(this, &APlayerHUD::HandleLivesChanged);
+
+		// Manually get the CURRENT state to initialize the HUD.
+		HandleLivesChanged(gameState->GetLives());
+	}
 }
 
-void APlayerHUD::DrawHUD()
+void APlayerHUD::HandleLivesChanged(int32 NewLives)
 {
-	Super::DrawHUD();
+	// This C++ function is called, which in turn calls the Blueprint-implementable event.
+	OnUpdateLives(NewLives);
 }

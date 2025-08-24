@@ -1,11 +1,26 @@
 
 #include "ColorShootingGameState.h"
+#include "Subsystem/GameConstantManager.h"
 
 AColorShootingGameState::AColorShootingGameState()
 {
     M_Score = 0;
-    M_HighScore = 0; // Initialize high score
-    M_Lives = 3; // Default number of lives
+    M_HighScore = 0; 
+    M_Lives = 0; 
+}
+
+void AColorShootingGameState::BeginPlay()
+{
+    Super::BeginPlay();
+
+    UGameConstantManager* constantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
+	if (constantManager)
+	{
+		M_Lives = constantManager->GetIntValue(FName("Player.InitialLives"));
+	}
+
+    // Broadcast the initial lives count
+    OnLivesChanged.Broadcast(M_Lives);
 }
 
 void AColorShootingGameState::AddScore(const int32 ScoreValue)
@@ -32,6 +47,7 @@ void AColorShootingGameState::RemoveLife()
     if (M_Lives > 0)
     {
         M_Lives--;
+        OnLivesChanged.Broadcast(M_Lives);
     }
 }
 

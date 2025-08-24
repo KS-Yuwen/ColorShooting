@@ -552,12 +552,14 @@ void APlayerCharacter::OnDeath_Implementation()
     SetActorEnableCollision(false);
     SetActorHiddenInGame(true);
 
+    // コントローラーから切り離し、入力を無効化
+    DetachFromControllerPendingDestroy();
+
     // ゲームモードに死亡を通知
     AColorShootingGameMode* gameMode = GetWorld()->GetAuthGameMode<AColorShootingGameMode>();
     if (gameMode)
     {
-        // TODO: Implement PlayerDied function in GameMode
-        // gameMode->PlayerDied(this);
+        gameMode->PlayerDied(this);
     }
 
     // 基底クラスの処理は呼ばない (Destroy() させないため)

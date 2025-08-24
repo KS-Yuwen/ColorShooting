@@ -5,6 +5,8 @@
 #include "GameFramework/GameStateBase.h"
 #include "ColorShootingGameState.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLivesChangedSignature, int32, NewLives);
+
 UCLASS()
 class COLORSHOOTING_API AColorShootingGameState : public AGameStateBase
 {
@@ -12,6 +14,10 @@ class COLORSHOOTING_API AColorShootingGameState : public AGameStateBase
 
 public:
     AColorShootingGameState();
+
+    //~ Begin AActor Interface
+	virtual void BeginPlay() override;
+	//~ End AActor Interface
 
     UFUNCTION(BlueprintCallable, Category = "Score")
     void AddScore(const int32 ScoreValue);
@@ -27,6 +33,9 @@ public:
 
     UFUNCTION(BlueprintPure, Category = "Lives")
     int32 GetLives() const;
+
+    UPROPERTY(BlueprintAssignable, Category = "Events")
+    FOnLivesChangedSignature OnLivesChanged;
 
 private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Score", meta = (AllowPrivateAccess = "true"))

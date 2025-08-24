@@ -13,6 +13,8 @@ class UInputAction;
 class ABullet;
 class UNiagaraSystem;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBombsChangedSignature, int32, NewBombCount);
+
 // Player character class
 UCLASS()
 class COLORSHOOTING_API APlayerCharacter : public ACharacterBase
@@ -42,6 +44,9 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Status")
 	void AddShotLevel(const EShotType shotType);
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnBombsChangedSignature OnBombsChanged;
 
 protected:
 	//~ Begin AActor Interface

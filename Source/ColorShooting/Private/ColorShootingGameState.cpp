@@ -19,8 +19,9 @@ void AColorShootingGameState::BeginPlay()
 		M_Lives = constantManager->GetIntValue(FName("Player.InitialLives"));
 	}
 
-    // Broadcast the initial lives count
+    // Broadcast the initial values
     OnLivesChanged.Broadcast(M_Lives);
+    OnScoreChanged.Broadcast(M_Score, M_HighScore);
 }
 
 void AColorShootingGameState::AddScore(const int32 ScoreValue)
@@ -28,8 +29,9 @@ void AColorShootingGameState::AddScore(const int32 ScoreValue)
     M_Score += ScoreValue;
     if (M_Score > M_HighScore)
     {
-        M_HighScore = M_Score; // Update high score if current score exceeds it
+        M_HighScore = M_Score;
     }
+    OnScoreChanged.Broadcast(M_Score, M_HighScore);
 }
 
 int32 AColorShootingGameState::GetScore() const

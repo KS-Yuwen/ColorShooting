@@ -21,6 +21,14 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "HUD")
 	void OnUpdateLives(int32 NewLives);
 
+	/** Blueprint-implementable event for updating the score display. */
+	UFUNCTION(BlueprintImplementableEvent, Category = "HUD")
+	void OnUpdateScore(int32 NewScore, int32 NewHighScore);
+
+	/** Blueprint-implementable event for updating the bombs display. */
+	UFUNCTION(BlueprintImplementableEvent, Category = "HUD")
+	void OnUpdateBombs(int32 NewBombs);
+
 	UPROPERTY(EditAnywhere, Category = "HUD")
 	TSubclassOf<class UUserWidget> PlayerHUDWidgetClass;
 
@@ -31,4 +39,12 @@ private:
 	/** Handler for the OnLivesChanged event from the GameState. */
 	UFUNCTION()
 	void HandleLivesChanged(int32 NewLives);
+
+	/** Handler for the OnScoreChanged event from the GameState. */
+	UFUNCTION()
+	void HandleScoreChanged(int32 NewScore, int32 NewHighScore);
+
+	/** Handler for the OnBombsChanged event from the PlayerCharacter. */
+	UFUNCTION()
+	void HandleBombsChanged(int32 NewBombs);
 };

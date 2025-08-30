@@ -7,6 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Character/PlayerCharacter.h"
 #include "TimerManager.h"
+#include "Blueprint/UserWidget.h"
 
 AColorShootingGameMode::AColorShootingGameMode()
 {
@@ -71,8 +72,26 @@ void AColorShootingGameMode::RespawnPlayer()
 
 void AColorShootingGameMode::GameOver()
 {
-	UE_LOG(LogTemp, Log, TEXT("GAME OVER"));
-	// TODO: Implement game over screen and logic
+	UGameplayStatics::SetGamePaused(GetWorld(), true);
+
+	APlayerController* playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	if (playerController == nullptr)
+	{
+		return;
+	}
+
+	playerController->bShowMouseCursor = true;
+	playerController->bEnableClickEvents = true;
+	playerController->bEnableMouseOverEvents = true;
+
+	if (M_GameOverWidgetClass)
+	{
+		UUserWidget* gameOverWidget = CreateWidget<UUserWidget>(playerController, M_GameOverWidgetClass);
+		if (gameOverWidget)
+		{
+			gameOverWidget->AddToViewport();
+		}
+	}
 }
 
 void AColorShootingGameMode::SetLevelCameraActive()

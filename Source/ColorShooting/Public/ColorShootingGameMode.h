@@ -34,6 +34,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Game")
 	float M_RespawnDelay = 3.0f;
 
+	/** The widget class to use for the game over screen. */
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<class UUserWidget> M_GameOverWidgetClass;
+
 private:
 	/** Timer handle for respawning the player. */
 	FTimerHandle M_RespawnTimerHandle;

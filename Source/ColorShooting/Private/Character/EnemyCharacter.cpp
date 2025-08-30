@@ -5,6 +5,7 @@
 #include "Subsystem/GameConstantManager.h"
 #include "Subsystem/EnemyManagerSubsystem.h"
 #include "TimerManager.h"
+#include "Item/ItemBase.h"
 
 AEnemyCharacter::AEnemyCharacter()
 {
@@ -103,25 +104,44 @@ float AEnemyCharacter::TakeDamage(float damageAmount, FDamageEvent const& damage
 	return actualDamage;
 }
 
-void AEnemyCharacter::OnDeath()
+void AEnemyCharacter::OnDeath_Implementation()
 {
+	// Ensure death logic only runs once to prevent re-entry and freezes.
+	if (M_bIsDead)
+	{
+		return;
+	}
+	M_bIsDead = true;
+
 	AColorShootingGameMode* gameMode = Cast<AColorShootingGameMode>(UGameplayStatics::GetGameMode(this));
-	if (gameMode == nullptr)
+	if (gameMode != nullptr)
 	{
-		Super::OnDeath();
-		return;
+		UGameConstantManager* constantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
+		if (constantManager != nullptr)
+		{
+			const FName scoreId = M_bKilledByReflectedBullet ? FName("Score.EnemyKillReflected") : FName("Score.EnemyKill");
+			const int32 score = constantManager->GetIntValue(scoreId);
+			gameMode->AddScore(score);
+		}
 	}
 
-	UGameConstantManager* constantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
-	if (constantManager == nullptr)
+	// Drop items
+	UWorld* const world = GetWorld();
+	if (world)
 	{
-		Super::OnDeath();
-		return;
+		for (const FDropItemInfo& dropInfo : M_DropItems)
+		{
+			if (dropInfo.ItemClass && FMath::FRand() < dropInfo.DropChance)
+			{
+				FActorSpawnParameters spawnParams;
+				spawnParams.Owner = this;
+				spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+				world->SpawnActor<AItemBase>(dropInfo.ItemClass, GetActorLocation(), GetActorRotation(), spawnParams);
+			}
+		}
 	}
 
-	const FName scoreId = M_bKilledByReflectedBullet ? FName("Score.EnemyKillReflected") : FName("Score.EnemyKill");
-	const int32 score = constantManager->GetIntValue(scoreId);
-	gameMode->AddScore(score);
-
-	Super::OnDeath();
+	// Finally, destroy the actor.
+	Destroy();
 }

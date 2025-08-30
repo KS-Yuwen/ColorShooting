@@ -6,6 +6,22 @@
 #include "EnemyCharacter.generated.h"
 
 class ABullet;
+class AItemBase;
+
+// ドロップアイテムの情報
+USTRUCT(BlueprintType)
+struct FDropItemInfo
+{
+	GENERATED_BODY()
+
+	// ドロップするアイテムのクラス
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	TSubclassOf<AItemBase> ItemClass;
+
+	// ドロップする確率 (0.0 to 1.0)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float DropChance = 1.0f;
+};
 
 // 敵キャラクタークラス
 UCLASS()
@@ -29,6 +45,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 	float M_FireRate = 1.0f;
 
+	// ドロップする可能性のあるアイテムのリスト
+	UPROPERTY(EditDefaultsOnly, Category = "Combat")
+	TArray<FDropItemInfo> M_DropItems;
+
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
@@ -44,7 +64,7 @@ protected:
 	// 攻撃処理
 	virtual void Fire();
 
-	virtual void OnDeath();
+	virtual void OnDeath_Implementation() override;
 
 private:
 	bool M_bKilledByReflectedBullet = false;

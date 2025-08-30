@@ -4,7 +4,7 @@
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/RotatingMovementComponent.h"
-#include "GameFramework/Pawn.h"
+#include "Character/PlayerCharacter.h"
 
 AItemBase::AItemBase(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -13,7 +13,11 @@ AItemBase::AItemBase(const FObjectInitializer& ObjectInitializer)
 
 	M_SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
 	RootComponent = M_SphereComponent;
-	M_SphereComponent->SetCollisionProfileName(FName("OverlapAllDynamic"));
+	
+	// Set up collision to only overlap with Pawns
+	M_SphereComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	M_SphereComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
+	M_SphereComponent->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 
 	M_MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	M_MeshComponent->SetupAttachment(RootComponent);
@@ -34,7 +38,8 @@ void AItemBase::BeginPlay()
 
 void AItemBase::OnOverlapBegin(UPrimitiveComponent* overlappedComponent, AActor* otherActor, UPrimitiveComponent* otherComp, int32 otherBodyIndex, bool bFromSweep, const FHitResult & sweepResult)
 {
-	if (otherActor == nullptr || !otherActor->IsA(APawn::StaticClass()))
+	APlayerCharacter* playerCharacter = Cast<APlayerCharacter>(otherActor);
+	if (playerCharacter == nullptr)
 	{
 		return;
 	}

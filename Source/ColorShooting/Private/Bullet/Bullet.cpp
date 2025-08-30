@@ -11,6 +11,7 @@
 #include "Subsystem/BulletPoolSubsystem.h"
 #include "Subsystem/GameConstantManager.h"
 #include "Effect/SlowingField.h"
+#include "Item/ItemBase.h"
 
 // Sets default values
 ABullet::ABullet()
@@ -162,8 +163,8 @@ void ABullet::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* O
 		return;
 	}
 
-	// Ignore collisions with other bullets or with slowing fields
-	if (Cast<ABullet>(OtherActor) || Cast<ASlowingField>(OtherActor))
+	// Ignore collisions with other bullets, items, or slowing fields
+	if (Cast<ABullet>(OtherActor) || Cast<AItemBase>(OtherActor) || Cast<ASlowingField>(OtherActor))
 	{
 		return;
 	}

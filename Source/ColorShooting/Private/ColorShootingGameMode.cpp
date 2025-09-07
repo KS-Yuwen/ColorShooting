@@ -72,26 +72,32 @@ void AColorShootingGameMode::RespawnPlayer()
 
 void AColorShootingGameMode::GameOver()
 {
-	UGameplayStatics::SetGamePaused(GetWorld(), true);
-
 	APlayerController* playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 	if (playerController == nullptr)
 	{
 		return;
 	}
 
-	playerController->bShowMouseCursor = true;
-	playerController->bEnableClickEvents = true;
-	playerController->bEnableMouseOverEvents = true;
-
+	// Create and add the GameOver widget to the viewport
+	UUserWidget* gameOverWidget = nullptr;
 	if (M_GameOverWidgetClass)
 	{
-		UUserWidget* gameOverWidget = CreateWidget<UUserWidget>(playerController, M_GameOverWidgetClass);
+		gameOverWidget = CreateWidget<UUserWidget>(playerController, M_GameOverWidgetClass);
 		if (gameOverWidget)
 		{
 			gameOverWidget->AddToViewport();
 		}
 	}
+
+	// Pause the game. The PlayerController will still be able to tick and process input.
+	UGameplayStatics::SetGamePaused(GetWorld(), true);
+
+	// Set input mode to UI only, allowing gamepad/keyboard focus on the widget.
+	FInputModeUIOnly inputMode;
+	inputMode.SetWidgetToFocus(gameOverWidget ? gameOverWidget->TakeWidget() : nullptr);
+	inputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+	playerController->SetInputMode(inputMode);
+	playerController->bShowMouseCursor = true;
 }
 
 void AColorShootingGameMode::SetLevelCameraActive()

@@ -92,10 +92,16 @@ void AColorShootingGameMode::GameOver()
 	// Pause the game. The PlayerController will still be able to tick and process input.
 	UGameplayStatics::SetGamePaused(GetWorld(), true);
 
-	// Set input mode to UI only, allowing gamepad/keyboard focus on the widget.
+	// Set input mode to UI only.
 	FInputModeUIOnly inputMode;
-	inputMode.SetWidgetToFocus(gameOverWidget ? gameOverWidget->TakeWidget() : nullptr);
 	inputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+
+	// If the widget was created successfully, set it as the focus for gamepad/keyboard control.
+	if (gameOverWidget)
+	{
+		inputMode.SetWidgetToFocus(gameOverWidget->TakeWidget());
+	}
+
 	playerController->SetInputMode(inputMode);
 	playerController->bShowMouseCursor = true;
 }

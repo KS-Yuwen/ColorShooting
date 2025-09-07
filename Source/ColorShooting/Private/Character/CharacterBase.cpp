@@ -2,6 +2,8 @@
 
 #include "Character/CharacterBase.h"
 #include "Components/SceneComponent.h"
+#include "NiagaraFunctionLibrary.h"
+#include "Kismet/GameplayStatics.h"
 
 ACharacterBase::ACharacterBase()
 {
@@ -28,6 +30,18 @@ void ACharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
+void ACharacterBase::Fire_Implementation()
+{
+	if (M_MuzzleFlashEffect)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), M_MuzzleFlashEffect, M_Muzzle->GetComponentLocation(), M_Muzzle->GetComponentRotation());
+	}
+	if (M_FireSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, M_FireSound, M_Muzzle->GetComponentLocation());
+	}
+}
+
 float ACharacterBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
 	// Do not take damage if already dead
@@ -41,6 +55,16 @@ float ACharacterBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageE
 	{
 		const float OldHealth = M_Health;
 		M_Health = FMath::Clamp(M_Health - ActualDamage, 0.0f, M_MaxHealth);
+
+		// Play impact effects
+		if (M_ImpactEffect)
+		{
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), M_ImpactEffect, GetActorLocation());
+		}
+		if (M_ImpactSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, M_ImpactSound, GetActorLocation());
+		}
 
 		// Broadcast the health change
 		OnHealthChanged.Broadcast(OldHealth, M_Health);

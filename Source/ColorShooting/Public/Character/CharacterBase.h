@@ -4,6 +4,9 @@
 #include "GameFramework/Character.h"
 #include "CharacterBase.generated.h"
 
+class UNiagaraSystem;
+class USoundBase;
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthChangedSignature, float, OldHealth, float, NewHealth);
 
 // 全てのキャラクターの基底クラス
@@ -33,6 +36,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Health")
 	FOnHealthChangedSignature OnHealthChanged;
 
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Combat")
+	void Fire();
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -51,6 +57,22 @@ protected:
 	// Flag to indicate if the character is dead
 	UPROPERTY(BlueprintReadOnly, Category = "Health")
 	bool M_bIsDead = false;
+
+	/** Effect to play when the character takes damage. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
+	TObjectPtr<UNiagaraSystem> M_ImpactEffect;
+
+	/** Sound to play when the character takes damage. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
+	TObjectPtr<USoundBase> M_ImpactSound;
+
+	/** Effect for muzzle flash. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
+	TObjectPtr<UNiagaraSystem> M_MuzzleFlashEffect;
+
+	/** Sound to play when firing. */
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
+	TObjectPtr<USoundBase> M_FireSound;
 
 	// Handles the character's death
 	UFUNCTION(BlueprintNativeEvent, Category = "Character")

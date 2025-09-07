@@ -128,13 +128,9 @@ void APlayerCharacter::Look(const FInputActionValue &value)
 	AddControllerPitchInput(lookAxisVector.Y);
 }
 
-void APlayerCharacter::Fire(const FInputActionValue &value)
+void APlayerCharacter::Fire_Implementation()
 {
-	USoundManagerSubsystem* soundManager = GetGameInstance()->GetSubsystem<USoundManagerSubsystem>();
-	if (soundManager != nullptr)
-	{
-		soundManager->PlaySE(M_FireSoundName);
-	}
+	Super::Fire_Implementation();
 
 	switch (M_CurrentShotType)
 	{

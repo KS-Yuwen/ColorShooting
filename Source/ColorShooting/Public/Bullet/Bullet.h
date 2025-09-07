@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "Common/ShotType.h"
 #include "Effect/SlowingField.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
 #include "Bullet.generated.h"
 
 UCLASS()
@@ -74,6 +76,10 @@ public:
 	// --- Blue Shot Properties ---
 	UPROPERTY(EditDefaultsOnly, Category = "BlueShot")
 	TSubclassOf<class ASlowingField> M_SlowingFieldClass;
+
+	/** Effect to spawn when the bullet is destroyed. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects")
+	TObjectPtr<class UNiagaraSystem> M_DestroyEffect;
 
 	UPROPERTY(BlueprintReadWrite, Category = "BlueShot")
 	float M_FieldRadius = 100.0f;

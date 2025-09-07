@@ -51,8 +51,12 @@ public:
 protected:
 	//~ Begin AActor Interface
 	virtual void BeginPlay() override;
-	virtual void OnDeath_Implementation() override;
 	//~ End AActor Interface
+
+	//~ Begin ACharacterBase Interface
+	virtual void OnDeath_Implementation() override;
+	virtual void Fire_Implementation() override;
+	//~ End ACharacterBase Interface
 
 	//~ Begin Input
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Input")
@@ -75,15 +79,12 @@ protected:
 
 	void Move(const FInputActionValue& value);
 	void Look(const FInputActionValue& value);
-	void Fire(const FInputActionValue& value);
+	// Fire is now handled by the base class event
 	void Bomb(const FInputActionValue& value);
 	void ChangeWeapon(const FInputActionValue& value);
 	//~ End Input
 
 	//~ Begin Sound
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sound")
-	FName M_FireSoundName = TEXT("PlayerFire");
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sound")
 	FName M_BombSoundName = TEXT("PlayerBomb");
 

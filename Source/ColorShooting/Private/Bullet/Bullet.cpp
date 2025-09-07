@@ -146,6 +146,12 @@ void ABullet::LifeSpanExpired()
 {
 	Super::LifeSpanExpired();
 
+	// Spawn destroy effect if assigned
+	if (M_DestroyEffect)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), M_DestroyEffect, GetActorLocation());
+	}
+
 	UBulletPoolSubsystem* bulletPool = UGameplayStatics::GetGameInstance(GetWorld())->GetSubsystem<UBulletPoolSubsystem>();
 	if (bulletPool == nullptr)
 	{
@@ -239,6 +245,12 @@ void ABullet::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* O
 				newField->InitializeField(M_FieldRadius, M_FieldDuration, M_SlowFactor);
 			}
 		}
+	}
+
+	// Spawn destroy effect if assigned
+	if (M_DestroyEffect)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), M_DestroyEffect, GetActorLocation());
 	}
 
 	// Return the bullet to the pool.

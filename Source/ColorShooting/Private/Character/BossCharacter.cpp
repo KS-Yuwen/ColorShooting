@@ -3,6 +3,7 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Kismet/GameplayStatics.h"
 #include "NiagaraFunctionLibrary.h"
+#include "TimerManager.h"
 
 ABossCharacter::ABossCharacter()
 {
@@ -36,6 +37,9 @@ void ABossCharacter::BeginPlay()
 
 	// 初期位置を記録
 	M_InitialLocation = GetActorLocation();
+
+	// 一定時間ごとに攻撃パターンを変更するタイマーを開始
+	GetWorldTimerManager().SetTimer(M_AttackPatternTimerHandle, this, &ABossCharacter::ChangeAttackPattern, M_AttackPatternChangeInterval, true, M_AttackPatternChangeInterval);
 }
 
 void ABossCharacter::Tick(float DeltaTime)
@@ -59,7 +63,34 @@ void ABossCharacter::Tick(float DeltaTime)
 	}
 }
 
+void ABossCharacter::ChangeAttackPattern()
+{
+	// 現在の攻撃パターンを基に次のパターンを決定（現在は2種類のトグル）
+	if (M_CurrentAttackPattern == EBossAttackPattern::Burst)
+	{
+		M_CurrentAttackPattern = EBossAttackPattern::Fan;
+	}
+	else
+	{
+		M_CurrentAttackPattern = EBossAttackPattern::Burst;
+	}
+}
+
 void ABossCharacter::Fire()
+{
+	// 現在の攻撃パターンに応じて処理を分岐
+	switch (M_CurrentAttackPattern)
+	{
+	case EBossAttackPattern::Burst:
+		Fire_Burst();
+		break;
+	case EBossAttackPattern::Fan:
+		Fire_FanShot();
+		break;
+	}
+}
+
+void ABossCharacter::Fire_Burst()
 {
 	if (M_ProjectileClass == nullptr)
 	{
@@ -112,5 +143,62 @@ void ABossCharacter::Fire()
 		{
 			UGameplayStatics::PlaySoundAtLocation(this, M_FireSound, SpawnLocation);
 		}
+	}
+}
+
+void ABossCharacter::Fire_FanShot()
+{
+	if (M_ProjectileClass == nullptr || M_FanShot_BulletCount <= 0)
+	{
+		return;
+	}
+
+	UWorld* const World = GetWorld();
+	if (World == nullptr)
+	{
+		return;
+	}
+
+	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
+	if (PlayerPawn == nullptr)
+	{
+		return;
+	}
+
+	// 中央の銃口位置とプレイヤーへの向きを基準とする
+	const FVector SpawnLocation = M_Muzzle->GetComponentLocation();
+	const FRotator BaseRotation = (PlayerPawn->GetActorLocation() - SpawnLocation).Rotation();
+
+	// 発射パラメータ
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+	SpawnParams.Instigator = GetInstigator();
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	const float HalfAngle = M_FanShot_Angle / 2.0f;
+	// 弾が1つの場合は中央に発射
+	const float AngleStep = (M_FanShot_BulletCount > 1) ? (M_FanShot_Angle / (M_FanShot_BulletCount - 1)) : 0.0f;
+
+	for (int32 i = 0; i < M_FanShot_BulletCount; ++i)
+	{
+		const float AngleOffset = (AngleStep * i) - HalfAngle;
+		const FRotator SpawnRotation = BaseRotation + FRotator(0.0f, AngleOffset, 0.0f);
+
+		ABullet* Bullet = World->SpawnActor<ABullet>(M_ProjectileClass, SpawnLocation, SpawnRotation, SpawnParams);
+		if (Bullet)
+		{
+			Bullet->M_bIsPlayerBullet = false;
+			Bullet->M_ShotType = M_ColorType;
+		}
+	}
+
+	// 発射エフェクトとサウンドは中央の銃口でのみ再生
+	if (M_MuzzleFlashEffect)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), M_MuzzleFlashEffect, SpawnLocation, BaseRotation);
+	}
+	if (M_FireSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, M_FireSound, SpawnLocation);
 	}
 }

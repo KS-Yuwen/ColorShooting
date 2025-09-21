@@ -43,6 +43,8 @@ void AColorShootingGameMode::AddScore(const int32& scoreValue)
 
 void AColorShootingGameMode::PlayerDied(APlayerCharacter* DeadPlayer)
 {
+	SetLevelCameraActive();
+
 	AColorShootingGameState* gameState = GetGameState<AColorShootingGameState>();
 	if (gameState == nullptr)
 	{

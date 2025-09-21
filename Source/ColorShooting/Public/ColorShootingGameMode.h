@@ -17,7 +17,7 @@ class COLORSHOOTING_API AColorShootingGameMode : public AGameModeBase
 public:
 	AColorShootingGameMode();
 
-	void AddScore(const int32 scoreValue);
+	void AddScore(const int32& scoreValue);
 
 	/** Called when the player has died. */
 	void PlayerDied(APlayerCharacter* DeadPlayer);

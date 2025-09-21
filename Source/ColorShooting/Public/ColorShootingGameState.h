@@ -21,7 +21,7 @@ public:
 	//~ End AActor Interface
 
     UFUNCTION(BlueprintCallable, Category = "Score")
-    void AddScore(const int32 ScoreValue);
+    void AddScore(const int32& ScoreValue);
 
     UFUNCTION(BlueprintPure, Category = "Score")
     int32 GetScore() const;

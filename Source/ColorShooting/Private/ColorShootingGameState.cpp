@@ -1,12 +1,12 @@
 
 #include "ColorShootingGameState.h"
 #include "Subsystem/GameConstantManager.h"
+#include "Math/UnrealMathUtility.h"
 
 AColorShootingGameState::AColorShootingGameState()
 {
     M_Score = 0;
     M_HighScore = 0; 
-    M_Lives = 0; 
 }
 
 void AColorShootingGameState::BeginPlay()
@@ -14,23 +14,22 @@ void AColorShootingGameState::BeginPlay()
     Super::BeginPlay();
 
     UGameConstantManager* constantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
-	if (constantManager)
+	if (constantManager == nullptr)
 	{
-		M_Lives = constantManager->GetIntValue(FName("Player.InitialLives"));
+		return;
 	}
+
+	M_Lives = constantManager->GetIntValue(FName("Player.InitialLives"));
 
     // Broadcast the initial values
     OnLivesChanged.Broadcast(M_Lives);
     OnScoreChanged.Broadcast(M_Score, M_HighScore);
 }
 
-void AColorShootingGameState::AddScore(const int32 ScoreValue)
+void AColorShootingGameState::AddScore(const int32& ScoreValue)
 {
     M_Score += ScoreValue;
-    if (M_Score > M_HighScore)
-    {
-        M_HighScore = M_Score;
-    }
+    M_HighScore = FMath::Max(M_Score, M_HighScore);
     OnScoreChanged.Broadcast(M_Score, M_HighScore);
 }
 

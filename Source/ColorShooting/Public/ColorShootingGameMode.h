@@ -1,4 +1,5 @@
 
+
 #pragma once
 
 #include "CoreMinimal.h"
@@ -68,4 +69,7 @@ private:
 
 	/** Sets the main level camera as the active view target. */
 	void SetLevelCameraActive();
+
+	/** Pauses the game and shows the specified UI widget. */
+	void ShowResultScreen(TSubclassOf<class UUserWidget> WidgetClass);
 };

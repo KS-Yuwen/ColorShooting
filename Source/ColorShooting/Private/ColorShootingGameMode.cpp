@@ -86,36 +86,7 @@ void AColorShootingGameMode::RespawnPlayer()
 
 void AColorShootingGameMode::GameOver()
 {
-	APlayerController* playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	if (playerController == nullptr)
-	{
-		return;
-	}
-
-	// Pause the game. The PlayerController will still be able to tick and process input.
-	UGameplayStatics::SetGamePaused(GetWorld(), true);
-
-	// Set input mode to UI only.
-	FInputModeUIOnly inputMode;
-	inputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-
-	// Create and add the GameOver widget to the viewport
-	if (M_GameOverWidgetClass == nullptr)
-	{
-		return;
-	}
-
-	UUserWidget* gameOverWidget = CreateWidget<UUserWidget>(playerController, M_GameOverWidgetClass);
-	if (gameOverWidget == nullptr)
-	{
-		return;
-	}
-
-	gameOverWidget->AddToViewport();
-	inputMode.SetWidgetToFocus(gameOverWidget->TakeWidget());
-
-	playerController->SetInputMode(inputMode);
-	playerController->bShowMouseCursor = true;
+	ShowResultScreen(M_GameOverWidgetClass);
 }
 
 void AColorShootingGameMode::SpawnBoss()
@@ -157,36 +128,7 @@ void AColorShootingGameMode::OnBossDied()
 
 void AColorShootingGameMode::StageClear()
 {
-	APlayerController* playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	if (playerController == nullptr)
-	{
-		return;
-	}
-
-	// Pause the game
-	UGameplayStatics::SetGamePaused(GetWorld(), true);
-
-	// Set input mode to UI only
-	FInputModeUIOnly inputMode;
-	inputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-
-	// Create and add the StageClear widget to the viewport
-	if (M_StageClearWidgetClass == nullptr)
-	{
-		return;
-	}
-
-	UUserWidget* stageClearWidget = CreateWidget<UUserWidget>(playerController, M_StageClearWidgetClass);
-	if (stageClearWidget == nullptr)
-	{
-		return;
-	}
-
-	stageClearWidget->AddToViewport();
-	inputMode.SetWidgetToFocus(stageClearWidget->TakeWidget());
-
-	playerController->SetInputMode(inputMode);
-	playerController->bShowMouseCursor = true;
+	ShowResultScreen(M_StageClearWidgetClass);
 }
 
 void AColorShootingGameMode::SetLevelCameraActive()
@@ -213,4 +155,38 @@ void AColorShootingGameMode::SetLevelCameraActive()
     }
 
     playerController->SetViewTargetWithBlend(levelCamera);
+}
+
+void AColorShootingGameMode::ShowResultScreen(TSubclassOf<class UUserWidget> WidgetClass)
+{
+	APlayerController* playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	if (playerController == nullptr)
+	{
+		return;
+	}
+
+	// Pause the game
+	UGameplayStatics::SetGamePaused(GetWorld(), true);
+
+	// Set input mode to UI only
+	FInputModeUIOnly inputMode;
+	inputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+
+	// Create and add the widget to the viewport
+	if (WidgetClass == nullptr)
+	{
+		return;
+	}
+
+	UUserWidget* resultWidget = CreateWidget<UUserWidget>(playerController, WidgetClass);
+	if (resultWidget == nullptr)
+	{
+		return;
+	}
+
+	resultWidget->AddToViewport();
+	inputMode.SetWidgetToFocus(resultWidget->TakeWidget());
+
+	playerController->SetInputMode(inputMode);
+	playerController->bShowMouseCursor = true;
 }

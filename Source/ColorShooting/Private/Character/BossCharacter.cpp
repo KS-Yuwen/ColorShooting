@@ -112,7 +112,7 @@ void ABossCharacter::ChangeAttackPattern()
 {
 	// Cycle through attack patterns
 	uint8 currentPatternIndex = static_cast<uint8>(M_CurrentAttackPattern);
-	currentPatternIndex = (currentPatternIndex + 1) % 3; // 3 is the number of attack patterns
+	currentPatternIndex = (currentPatternIndex + 1) % static_cast<uint8>(EBossAttackPattern::Max);
 	M_CurrentAttackPattern = static_cast<EBossAttackPattern>(currentPatternIndex);
 
 	// Reset spiral angle when changing to spiral pattern
@@ -139,15 +139,30 @@ void ABossCharacter::Fire()
 	}
 }
 
-void ABossCharacter::Fire_Burst()
+void ABossCharacter::SpawnBullet(const FVector& Location, const FRotator& Rotation)
 {
-	if (M_ProjectileClass == nullptr)
+	UWorld* const World = GetWorld();
+	if (World == nullptr)
 	{
 		return;
 	}
 
-	UWorld* const World = GetWorld();
-	if (World == nullptr)
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+	SpawnParams.Instigator = GetInstigator();
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	ABullet* Bullet = World->SpawnActor<ABullet>(M_ProjectileClass, Location, Rotation, SpawnParams);
+	if (Bullet)
+	{
+		Bullet->M_bIsPlayerBullet = false;
+		Bullet->M_ShotType = M_ColorType;
+	}
+}
+
+void ABossCharacter::Fire_Burst()
+{
+	if (M_ProjectileClass == nullptr)
 	{
 		return;
 	}
@@ -157,12 +172,6 @@ void ABossCharacter::Fire_Burst()
 	{
 		return;
 	}
-
-	// 発射パラメータ
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = this;
-	SpawnParams.Instigator = GetInstigator();
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
 	// 3つの銃口からプレイヤーを狙って弾を発射
 	const TArray<USceneComponent*> Muzzles = { M_Muzzle, M_Muzzle_Left, M_Muzzle_Right };
@@ -175,13 +184,7 @@ void ABossCharacter::Fire_Burst()
 
 		const FVector SpawnLocation = Muzzle->GetComponentLocation();
 		const FRotator SpawnRotation = (PlayerPawn->GetActorLocation() - SpawnLocation).Rotation();
-
-		ABullet* Bullet = World->SpawnActor<ABullet>(M_ProjectileClass, SpawnLocation, SpawnRotation, SpawnParams);
-		if (Bullet)
-		{
-			Bullet->M_bIsPlayerBullet = false;
-			Bullet->M_ShotType = M_ColorType;
-		}
+		SpawnBullet(SpawnLocation, SpawnRotation);
 
 		// 発射エフェクトとサウンドを再生
 		if (M_MuzzleFlashEffect)
@@ -202,12 +205,6 @@ void ABossCharacter::Fire_FanShot()
 		return;
 	}
 
-	UWorld* const World = GetWorld();
-	if (World == nullptr)
-	{
-		return;
-	}
-
 	APawn* PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
 	if (PlayerPawn == nullptr)
 	{
@@ -218,12 +215,6 @@ void ABossCharacter::Fire_FanShot()
 	const FVector SpawnLocation = M_Muzzle->GetComponentLocation();
 	const FRotator BaseRotation = (PlayerPawn->GetActorLocation() - SpawnLocation).Rotation();
 
-	// 発射パラメータ
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = this;
-	SpawnParams.Instigator = GetInstigator();
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
 	const float HalfAngle = M_FanShot_Angle / 2.0f;
 	// 弾が1つの場合は中央に発射
 	const float AngleStep = (M_FanShot_BulletCount > 1) ? (M_FanShot_Angle / (M_FanShot_BulletCount - 1)) : 0.0f;
@@ -232,13 +223,7 @@ void ABossCharacter::Fire_FanShot()
 	{
 		const float AngleOffset = (AngleStep * i) - HalfAngle;
 		const FRotator SpawnRotation = BaseRotation + FRotator(0.0f, AngleOffset, 0.0f);
-
-		ABullet* Bullet = World->SpawnActor<ABullet>(M_ProjectileClass, SpawnLocation, SpawnRotation, SpawnParams);
-		if (Bullet)
-		{
-			Bullet->M_bIsPlayerBullet = false;
-			Bullet->M_ShotType = M_ColorType;
-		}
+		SpawnBullet(SpawnLocation, SpawnRotation);
 	}
 
 	// 発射エフェクトとサウンドは中央の銃口でのみ再生
@@ -259,32 +244,14 @@ void ABossCharacter::Fire_Spiral()
 		return;
 	}
 
-	UWorld* const World = GetWorld();
-	if (World == nullptr)
-	{
-		return;
-	}
-
 	const FVector SpawnLocation = M_Muzzle->GetComponentLocation();
-
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.Owner = this;
-	SpawnParams.Instigator = GetInstigator();
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
-
 	const float AngleBetweenBullets = 360.0f / M_Spiral_BulletCount;
 
 	for (int32 i = 0; i < M_Spiral_BulletCount; ++i)
 	{
 		const float Angle = M_Spiral_CurrentAngle + (i * AngleBetweenBullets);
 		const FRotator SpawnRotation = FRotator(0.0f, Angle, 0.0f);
-
-		ABullet* Bullet = World->SpawnActor<ABullet>(M_ProjectileClass, SpawnLocation, SpawnRotation, SpawnParams);
-		if (Bullet)
-		{
-			Bullet->M_bIsPlayerBullet = false;
-			Bullet->M_ShotType = M_ColorType;
-		}
+		SpawnBullet(SpawnLocation, SpawnRotation);
 	}
 
 	// Update the angle for the next shot

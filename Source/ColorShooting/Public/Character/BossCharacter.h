@@ -9,7 +9,9 @@ enum class EBossAttackPattern : uint8
 {
 	Burst UMETA(DisplayName = "3-Way Burst"),
 	Fan   UMETA(DisplayName = "Fan Shot"),
-	Spiral UMETA(DisplayName = "Spiral Shot")
+	Spiral UMETA(DisplayName = "Spiral Shot"),
+
+	Max UMETA(Hidden)
 };
 
 /**
@@ -99,6 +101,10 @@ protected:
 	// 移動速度
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Movement")
 	float M_MovementSpeed = 200.0f;
+
+private:
+	// 弾をスポーンさせるヘルパー関数
+	void SpawnBullet(const FVector& Location, const FRotator& Rotation);
 
 private:
 	// ボス死亡イベント

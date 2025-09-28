@@ -15,7 +15,7 @@ ABossCharacter::ABossCharacter()
 	M_MaxHealth = 2000.0f;
 
 	// ボスの攻撃頻度を設定
-	M_FireRate = 0.8f;
+	M_FireRate = 0.1f; // Spiral shot needs a faster fire rate
 
 	// 発射する弾のクラスを設定 (BP_EnemyBullet)
 	static ConstructorHelpers::FClassFinder<ABullet> ProjectileClassFinder(TEXT("/Game/BluePrints/Bullet/Enemy/BP_EnemyBullet.BP_EnemyBullet_C"));
@@ -110,14 +110,15 @@ void ABossCharacter::OnDeath_Implementation()
 
 void ABossCharacter::ChangeAttackPattern()
 {
-	// 現在の攻撃パターンを基に次のパターンを決定（現在は2種類のトグル）
-	if (M_CurrentAttackPattern == EBossAttackPattern::Burst)
+	// Cycle through attack patterns
+	uint8 currentPatternIndex = static_cast<uint8>(M_CurrentAttackPattern);
+	currentPatternIndex = (currentPatternIndex + 1) % 3; // 3 is the number of attack patterns
+	M_CurrentAttackPattern = static_cast<EBossAttackPattern>(currentPatternIndex);
+
+	// Reset spiral angle when changing to spiral pattern
+	if (M_CurrentAttackPattern == EBossAttackPattern::Spiral)
 	{
-		M_CurrentAttackPattern = EBossAttackPattern::Fan;
-	}
-	else
-	{
-		M_CurrentAttackPattern = EBossAttackPattern::Burst;
+		M_Spiral_CurrentAngle = 0.0f;
 	}
 }
 
@@ -131,6 +132,9 @@ void ABossCharacter::Fire()
 		break;
 	case EBossAttackPattern::Fan:
 		Fire_FanShot();
+		break;
+	case EBossAttackPattern::Spiral:
+		Fire_Spiral();
 		break;
 	}
 }
@@ -241,6 +245,59 @@ void ABossCharacter::Fire_FanShot()
 	if (M_MuzzleFlashEffect)
 	{
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), M_MuzzleFlashEffect, SpawnLocation, BaseRotation);
+	}
+	if (M_FireSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, M_FireSound, SpawnLocation);
+	}
+}
+
+void ABossCharacter::Fire_Spiral()
+{
+	if (M_ProjectileClass == nullptr || M_Spiral_BulletCount <= 0)
+	{
+		return;
+	}
+
+	UWorld* const World = GetWorld();
+	if (World == nullptr)
+	{
+		return;
+	}
+
+	const FVector SpawnLocation = M_Muzzle->GetComponentLocation();
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+	SpawnParams.Instigator = GetInstigator();
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	const float AngleBetweenBullets = 360.0f / M_Spiral_BulletCount;
+
+	for (int32 i = 0; i < M_Spiral_BulletCount; ++i)
+	{
+		const float Angle = M_Spiral_CurrentAngle + (i * AngleBetweenBullets);
+		const FRotator SpawnRotation = FRotator(0.0f, Angle, 0.0f);
+
+		ABullet* Bullet = World->SpawnActor<ABullet>(M_ProjectileClass, SpawnLocation, SpawnRotation, SpawnParams);
+		if (Bullet)
+		{
+			Bullet->M_bIsPlayerBullet = false;
+			Bullet->M_ShotType = M_ColorType;
+		}
+	}
+
+	// Update the angle for the next shot
+	M_Spiral_CurrentAngle += M_Spiral_AngleStep;
+	if (M_Spiral_CurrentAngle >= 360.0f)
+	{
+		M_Spiral_CurrentAngle -= 360.0f;
+	}
+
+	// Play effects at the center
+	if (M_MuzzleFlashEffect)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), M_MuzzleFlashEffect, SpawnLocation, FRotator::ZeroRotator);
 	}
 	if (M_FireSound)
 	{

@@ -8,7 +8,8 @@ UENUM(BlueprintType)
 enum class EBossAttackPattern : uint8
 {
 	Burst UMETA(DisplayName = "3-Way Burst"),
-	Fan   UMETA(DisplayName = "Fan Shot")
+	Fan   UMETA(DisplayName = "Fan Shot"),
+	Spiral UMETA(DisplayName = "Spiral Shot")
 };
 
 /**
@@ -43,13 +44,16 @@ protected:
 	// 扇状攻撃
 	virtual void Fire_FanShot();
 
+	// スパイラル攻撃
+	virtual void Fire_Spiral();
+
 public:
 	virtual void Tick(float DeltaTime) override;
 
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
+
 	// ボス死亡イベント
 	FOnBossDied& OnBossDied() { return M_OnBossDied; }
-
-	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
 protected:
 	// 左の銃口
@@ -78,6 +82,15 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Attack|Fan", meta = (ClampMin = "0.0"))
 	float M_FanShot_Angle = 60.0f;
 
+	// --- スパイラル攻撃のパラメータ ---
+	// 1波あたりの弾の数
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Attack|Spiral", meta = (ClampMin = "1"))
+	int32 M_Spiral_BulletCount = 2;
+
+	// 次の弾を発射する際の回転角度
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Attack|Spiral")
+	float M_Spiral_AngleStep = 15.0f;
+
 	// --- 移動関連 ---
 	// 移動範囲（Y軸方向）
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Boss|Movement")
@@ -88,6 +101,9 @@ protected:
 	float M_MovementSpeed = 200.0f;
 
 private:
+	// ボス死亡イベント
+	FOnBossDied M_OnBossDied;
+
 	// 初期位置
 	FVector M_InitialLocation;
 
@@ -97,6 +113,6 @@ private:
 	// 攻撃パターン変更タイマーのハンドル
 	FTimerHandle M_AttackPatternTimerHandle;
 
-	// ボス死亡イベント
-	FOnBossDied M_OnBossDied;
+	// スパイラル攻撃の現在の角度
+	float M_Spiral_CurrentAngle = 0.0f;
 };

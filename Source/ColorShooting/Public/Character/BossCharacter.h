@@ -20,10 +20,16 @@ class COLORSHOOTING_API ABossCharacter : public AEnemyCharacter
 	GENERATED_BODY()
 
 public:
+	DECLARE_EVENT(ABossCharacter, FOnBossDied)
+
+public:
 	ABossCharacter();
 
 protected:
 	virtual void BeginPlay() override;
+
+	// 死亡処理
+	virtual void OnDeath_Implementation() override;
 
 	// 攻撃パターンに応じて攻撃を実行
 	virtual void Fire() override;
@@ -39,6 +45,11 @@ protected:
 
 public:
 	virtual void Tick(float DeltaTime) override;
+
+	// ボス死亡イベント
+	FOnBossDied& OnBossDied() { return M_OnBossDied; }
+
+	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, AActor* DamageCauser) override;
 
 protected:
 	// 左の銃口
@@ -85,4 +96,7 @@ private:
 
 	// 攻撃パターン変更タイマーのハンドル
 	FTimerHandle M_AttackPatternTimerHandle;
+
+	// ボス死亡イベント
+	FOnBossDied M_OnBossDied;
 };

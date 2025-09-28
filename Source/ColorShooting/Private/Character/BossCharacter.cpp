@@ -4,6 +4,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "NiagaraFunctionLibrary.h"
 #include "TimerManager.h"
+#include "ColorShootingGameMode.h"
+#include "Subsystem/GameConstantManager.h"
 
 ABossCharacter::ABossCharacter()
 {
@@ -61,6 +63,49 @@ void ABossCharacter::Tick(float DeltaTime)
 	{
 		M_bMoveRight = !M_bMoveRight;
 	}
+}
+
+float ABossCharacter::TakeDamage(float damageAmount, FDamageEvent const& damageEvent, AController* eventInstigator, AActor* damageCauser)
+{
+	const float actualDamage = Super::TakeDamage(damageAmount, damageEvent, eventInstigator, damageCauser);
+
+	if (actualDamage > 0.f)
+	{
+		// 必要であればここに被弾時の追加処理を記述
+	}
+
+	return actualDamage;
+}
+
+void ABossCharacter::OnDeath_Implementation()
+{
+	// Ensure death logic only runs once.
+	if (M_bIsDead)
+	{
+		return;
+	}
+	M_bIsDead = true;
+
+	// Add score
+	AColorShootingGameMode* gameMode = Cast<AColorShootingGameMode>(UGameplayStatics::GetGameMode(this));
+	if (gameMode != nullptr)
+	{
+		UGameConstantManager* constantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
+		if (constantManager != nullptr)
+		{
+			const int32 score = constantManager->GetIntValue(FName("Score.BossKill"));
+			gameMode->AddScore(score);
+		}
+	}
+
+	// Broadcast death event
+	M_OnBossDied.Broadcast();
+
+	// Stop all timers
+	GetWorldTimerManager().ClearAllTimersForObject(this);
+
+	// Call parent implementation (handles item drops, etc.)
+	Super::OnDeath_Implementation();
 }
 
 void ABossCharacter::ChangeAttackPattern()

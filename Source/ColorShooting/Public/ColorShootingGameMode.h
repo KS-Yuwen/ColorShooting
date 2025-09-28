@@ -8,6 +8,7 @@
 class AColorShootingGameState;
 class APlayerHUD;
 class APlayerCharacter;
+class ABossCharacter;
 
 UCLASS()
 class COLORSHOOTING_API AColorShootingGameMode : public AGameModeBase
@@ -38,6 +39,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<class UUserWidget> M_GameOverWidgetClass;
 
+	/** The widget class to use for the stage clear screen. */
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<class UUserWidget> M_StageClearWidgetClass;
+
+	/** Blueprint class of the Boss to spawn. */
+	UPROPERTY(EditDefaultsOnly, Category = "Game")
+	TSubclassOf<ABossCharacter> M_BossClass;
+
 private:
 	/** Timer handle for respawning the player. */
 	FTimerHandle M_RespawnTimerHandle;
@@ -47,6 +56,15 @@ private:
 
 	/** Function to handle game over logic. */
 	void GameOver();
+
+	/** Spawns the boss character. */
+	void SpawnBoss();
+
+	/** Called when the boss has died. */
+	void OnBossDied();
+
+	/** Function to handle stage clear logic. */
+	void StageClear();
 
 	/** Sets the main level camera as the active view target. */
 	void SetLevelCameraActive();

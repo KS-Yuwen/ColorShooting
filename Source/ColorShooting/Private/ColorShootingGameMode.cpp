@@ -1,5 +1,7 @@
 
 
+
+
 #include "ColorShootingGameMode.h"
 #include "Subsystem/SoundManagerSubsystem.h"
 #include "Subsystem/GameConstantManager.h"
@@ -7,6 +9,7 @@
 #include "UI/PlayerHUD.h"
 #include "Kismet/GameplayStatics.h"
 #include "Character/PlayerCharacter.h"
+#include "Character/BossCharacter.h"
 #include "TimerManager.h"
 #include "Blueprint/UserWidget.h"
 
@@ -29,6 +32,10 @@ void AColorShootingGameMode::BeginPlay()
 	soundManager->PlayBGM(M_StageBGMSoundName);
 
     SetLevelCameraActive();
+
+	// Spawn the boss after a delay
+	FTimerHandle unusedHandle;
+	GetWorldTimerManager().SetTimer(unusedHandle, this, &AColorShootingGameMode::SpawnBoss, 5.0f, false);
 }
 
 void AColorShootingGameMode::AddScore(const int32& scoreValue)
@@ -106,6 +113,77 @@ void AColorShootingGameMode::GameOver()
 
 	gameOverWidget->AddToViewport();
 	inputMode.SetWidgetToFocus(gameOverWidget->TakeWidget());
+
+	playerController->SetInputMode(inputMode);
+	playerController->bShowMouseCursor = true;
+}
+
+void AColorShootingGameMode::SpawnBoss()
+{
+	if (M_BossClass == nullptr)
+	{
+		return;
+	}
+
+	UWorld* const world = GetWorld();
+	if (world == nullptr)
+	{
+		return;
+	}
+
+	// Define spawn parameters
+	// TODO: Make spawn location data-driven
+	const FVector spawnLocation = FVector(0.f, 0.f, 500.f);
+	const FRotator spawnRotation = FRotator::ZeroRotator;
+	FActorSpawnParameters spawnParams;
+	spawnParams.Owner = this;
+	spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	// Spawn the boss
+	ABossCharacter* boss = world->SpawnActor<ABossCharacter>(M_BossClass, spawnLocation, spawnRotation, spawnParams);
+	if (boss)
+	{
+		// Bind to the boss's death event
+		boss->OnBossDied().AddUObject(this, &AColorShootingGameMode::OnBossDied);
+	}
+}
+
+void AColorShootingGameMode::OnBossDied()
+{
+	// Call StageClear after a delay
+	FTimerHandle unusedHandle;
+	GetWorldTimerManager().SetTimer(unusedHandle, this, &AColorShootingGameMode::StageClear, 3.0f, false);
+}
+
+void AColorShootingGameMode::StageClear()
+{
+	APlayerController* playerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	if (playerController == nullptr)
+	{
+		return;
+	}
+
+	// Pause the game
+	UGameplayStatics::SetGamePaused(GetWorld(), true);
+
+	// Set input mode to UI only
+	FInputModeUIOnly inputMode;
+	inputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+
+	// Create and add the StageClear widget to the viewport
+	if (M_StageClearWidgetClass == nullptr)
+	{
+		return;
+	}
+
+	UUserWidget* stageClearWidget = CreateWidget<UUserWidget>(playerController, M_StageClearWidgetClass);
+	if (stageClearWidget == nullptr)
+	{
+		return;
+	}
+
+	stageClearWidget->AddToViewport();
+	inputMode.SetWidgetToFocus(stageClearWidget->TakeWidget());
 
 	playerController->SetInputMode(inputMode);
 	playerController->bShowMouseCursor = true;

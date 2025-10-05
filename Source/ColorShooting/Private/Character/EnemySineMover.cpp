@@ -22,7 +22,7 @@ void AEnemySineMover::Tick(float DeltaTime)
 
 	FVector NewLocation = InitialPosition;
 	NewLocation.Y += RunningTime * MoveSpeedY;
-	NewLocation.Z += Amplitude * FMath::Sin(RunningTime * Frequency);
+	NewLocation.X += Amplitude * FMath::Sin(RunningTime * Frequency);
 
 	SetActorLocation(NewLocation);
 }

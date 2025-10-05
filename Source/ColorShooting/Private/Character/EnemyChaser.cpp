@@ -9,13 +9,6 @@ AEnemyChaser::AEnemyChaser()
 
 	// Automatically possess this character with an AI controller when spawned
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
-
-	// Set up flying movement for the character
-	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
-	{
-		MoveComp->SetMovementMode(EMovementMode::MOVE_Flying);
-		MoveComp->GravityScale = 0.0f;
-	}
 }
 
 void AEnemyChaser::BeginPlay()

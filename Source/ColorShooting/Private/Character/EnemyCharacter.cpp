@@ -6,10 +6,18 @@
 #include "Subsystem/EnemyManagerSubsystem.h"
 #include "TimerManager.h"
 #include "Item/ItemBase.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 AEnemyCharacter::AEnemyCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	// Set up flying movement as a default for all enemy characters
+	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+	{
+		MoveComp->SetMovementMode(EMovementMode::MOVE_Flying);
+		MoveComp->GravityScale = 0.0f;
+	}
 }
 
 void AEnemyCharacter::BeginPlay()

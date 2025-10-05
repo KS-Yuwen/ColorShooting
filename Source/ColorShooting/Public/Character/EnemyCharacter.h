@@ -60,15 +60,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Enemy")
 	EShotType GetColorType() const { return M_ColorType; }
 
-protected:
 	// 攻撃処理
 	virtual void Fire();
 
+protected:
 	virtual void OnDeath_Implementation() override;
 
 private:
 	bool M_bKilledByReflectedBullet = false;
 
+protected:
 	// 攻撃タイマーのハンドル
 	FTimerHandle M_FireTimerHandle;
 };

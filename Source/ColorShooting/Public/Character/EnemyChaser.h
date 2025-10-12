@@ -39,4 +39,7 @@ private:
 
 	// Flag to check if the enemy is within firing range.
 	bool bCanFire = false;
+
+	// Flag to indicate that this enemy has been permanently deactivated.
+	bool bIsDeactivated = false;
 };

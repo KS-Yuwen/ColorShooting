@@ -32,42 +32,51 @@ void AEnemyChaser::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// Re-acquire the player pawn if the reference is lost (e.g., after player respawns)
+	// Re-acquire the player pawn if the reference is lost
 	if (!PlayerPawn.IsValid())
 	{
 		PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
-		if (!PlayerPawn.IsValid())
+	}
+
+	FRotator TargetRotation = GetActorRotation(); // Default to current rotation
+
+	if (PlayerPawn.IsValid())
+	{
+		// Player is alive: Chase and fire.
+		
+		// --- Rotation ---
+		// Calculate target rotation towards player
+		const FVector Direction = PlayerPawn->GetActorLocation() - GetActorLocation();
+		TargetRotation = Direction.Rotation();
+
+		// --- Combat ---
+		const float DistanceToPlayer = FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation());
+		const bool bIsInRange = DistanceToPlayer <= FireRange;
+
+		if (bIsInRange && !bCanFire)
 		{
-			return; // Stop processing if player is not available
+			bCanFire = true;
+			GetWorldTimerManager().SetTimer(M_FireTimerHandle, this, &AEnemyCharacter::Fire, M_FireRate, true);
+		}
+		else if (!bIsInRange && bCanFire)
+		{
+			bCanFire = false;
+			GetWorldTimerManager().ClearTimer(M_FireTimerHandle);
+		}
+	}
+	else
+	{
+		// Player is dead or invalid: Stop firing.
+		// TargetRotation is already set to the current rotation, so it will fly straight.
+		if (bCanFire)
+		{
+			bCanFire = false;
+			GetWorldTimerManager().ClearTimer(M_FireTimerHandle);
 		}
 	}
 
-	// --- Rotation ---
-	const FVector Direction = PlayerPawn->GetActorLocation() - GetActorLocation();
-	const FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), Direction.Rotation(), DeltaTime, RotationSpeed);
-	SetActorRotation(FRotator(0.f, NewRotation.Yaw, 0.f)); // We only want to rotate in the Yaw
-
-	// --- Movement ---
-	if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
-	{
-		MoveComp->Velocity = GetActorForwardVector() * ChaseSpeed;
-	}
-
-	// --- Combat ---
-	const float DistanceToPlayer = FVector::Dist(GetActorLocation(), PlayerPawn->GetActorLocation());
-
-	// Check if the enemy should start or stop firing
-	const bool bIsInRange = DistanceToPlayer <= FireRange;
-	if (bIsInRange && !bCanFire)
-	{
-		bCanFire = true;
-		// Start the fire timer
-		GetWorldTimerManager().SetTimer(M_FireTimerHandle, this, &AEnemyCharacter::Fire, M_FireRate, true);
-	}
-	else if (!bIsInRange && bCanFire)
-	{
-		bCanFire = false;
-		// Stop the fire timer
-		GetWorldTimerManager().ClearTimer(M_FireTimerHandle);
-	}
+	// --- Apply Rotation and Movement ---
+	const FRotator NewRotation = FMath::RInterpTo(GetActorRotation(), TargetRotation, DeltaTime, RotationSpeed);
+	SetActorRotation(FRotator(0.f, NewRotation.Yaw, 0.f));
+	AddMovementInput(GetActorForwardVector());
 }

@@ -160,6 +160,21 @@ void ABossCharacter::SpawnBullet(const FVector& Location, const FRotator& Rotati
 	}
 }
 
+void ABossCharacter::PlayFireEffects(const FVector& Location, const FRotator& Rotation)
+{
+	// Play muzzle flash effect
+	if (M_MuzzleFlashEffect)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), M_MuzzleFlashEffect, Location, Rotation);
+	}
+
+	// Play fire sound
+	if (M_FireSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, M_FireSound, Location);
+	}
+}
+
 void ABossCharacter::Fire_Burst()
 {
 	if (M_ProjectileClass == nullptr)
@@ -186,15 +201,8 @@ void ABossCharacter::Fire_Burst()
 		const FRotator SpawnRotation = (PlayerPawn->GetActorLocation() - SpawnLocation).Rotation();
 		SpawnBullet(SpawnLocation, SpawnRotation);
 
-		// 発射エフェクトとサウンドを再生
-		if (M_MuzzleFlashEffect)
-		{
-			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), M_MuzzleFlashEffect, SpawnLocation, SpawnRotation);
-		}
-		if (M_FireSound)
-		{
-			UGameplayStatics::PlaySoundAtLocation(this, M_FireSound, SpawnLocation);
-		}
+		// Play firing effects
+		PlayFireEffects(SpawnLocation, SpawnRotation);
 	}
 }
 
@@ -226,15 +234,8 @@ void ABossCharacter::Fire_FanShot()
 		SpawnBullet(SpawnLocation, SpawnRotation);
 	}
 
-	// 発射エフェクトとサウンドは中央の銃口でのみ再生
-	if (M_MuzzleFlashEffect)
-	{
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), M_MuzzleFlashEffect, SpawnLocation, BaseRotation);
-	}
-	if (M_FireSound)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, M_FireSound, SpawnLocation);
-	}
+	// Play effects at the central muzzle
+	PlayFireEffects(SpawnLocation, BaseRotation);
 }
 
 void ABossCharacter::Fire_Spiral()
@@ -262,12 +263,5 @@ void ABossCharacter::Fire_Spiral()
 	}
 
 	// Play effects at the center
-	if (M_MuzzleFlashEffect)
-	{
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), M_MuzzleFlashEffect, SpawnLocation, FRotator::ZeroRotator);
-	}
-	if (M_FireSound)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, M_FireSound, SpawnLocation);
-	}
+	PlayFireEffects(SpawnLocation, FRotator::ZeroRotator);
 }

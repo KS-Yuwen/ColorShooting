@@ -61,6 +61,20 @@ void AEnemyCharacter::Tick(float deltaTime)
 
 void AEnemyCharacter::Fire()
 {
+	APawn* playerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
+	if (playerPawn == nullptr)
+	{
+		return;
+	}
+
+	const FVector fireLocation = GetActorLocation();
+	const FRotator fireRotation = (playerPawn->GetActorLocation() - fireLocation).Rotation();
+
+	FireInDirection(fireRotation);
+}
+
+void AEnemyCharacter::FireInDirection(const FRotator& FireRotation)
+{
 	if (M_ProjectileClass == nullptr)
 	{
 		return;
@@ -72,21 +86,14 @@ void AEnemyCharacter::Fire()
 		return;
 	}
 
-	APawn* playerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
-	if (playerPawn == nullptr)
-	{
-		return;
-	}
-
 	const FVector fireLocation = GetActorLocation();
-	const FRotator fireRotation = (playerPawn->GetActorLocation() - fireLocation).Rotation();
 
 	FActorSpawnParameters spawnParams;
 	spawnParams.Owner = this;
 	spawnParams.Instigator = GetInstigator();
 	spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-	ABullet* bullet = world->SpawnActor<ABullet>(M_ProjectileClass, fireLocation, fireRotation, spawnParams);
+	ABullet* bullet = world->SpawnActor<ABullet>(M_ProjectileClass, fireLocation, FireRotation, spawnParams);
 	if (bullet)
 	{
 		bullet->M_bIsPlayerBullet = false;

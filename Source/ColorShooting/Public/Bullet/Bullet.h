@@ -93,4 +93,26 @@ public:
 	// Function that is called when the projectile overlaps with something.
 	UFUNCTION()
 	virtual void OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+private:
+	//~ Begin Collision Logic
+	/** Checks if the collision should be ignored based on the other actor. */
+	bool ShouldIgnoreCollision(AActor* OtherActor);
+
+	/** Handles the collision logic when this bullet is fired by the player. Returns true if the bullet should be destroyed. */
+	bool HandlePlayerBulletCollision(AActor* OtherActor, const FHitResult& SweepResult);
+
+	/** Handles the collision logic when this bullet is fired by an enemy. */
+	void HandleEnemyBulletCollision(AActor* OtherActor);
+
+	/** Spawns a slowing field if the bullet is of the correct type. */
+	void TrySpawnSlowingField(const FHitResult& SweepResult, AActor* OtherActor);
+
+	/** Applies a physics impulse to the other component if applicable. */
+	void TryApplyPhysicsImpulse(UPrimitiveComponent* OtherComp);
+
+	/** Plays destroy effects and returns the bullet to the object pool. */
+	void DeactivateAndReturnToPool();
+	//~ End Collision Logic
 };
+

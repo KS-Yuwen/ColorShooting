@@ -41,30 +41,23 @@ void AEnemyChaser::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// If this enemy has been permanently deactivated, just fly forward and do nothing else.
+	// If deactivated, just keep moving forward and do nothing else.
 	if (bIsDeactivated)
 	{
-		const FVector NewLocation = GetActorLocation() + (GetActorForwardVector() * ChaseSpeed * DeltaTime);
-		SetActorLocation(NewLocation, true); // bSweep = true to attempt to stop at walls
+		AddMovementInput(GetActorForwardVector());
 		return;
 	}
 
-	// Try to get player pawn if we don't have a valid reference.
+	// Attempt to get the player pawn if the reference is weak or invalid.
 	if (!PlayerPawn.IsValid())
 	{
 		PlayerPawn = UGameplayStatics::GetPlayerPawn(this, 0);
-		// If still not valid after trying (e.g. player doesn't exist at level start), deactivate.
-		if (!PlayerPawn.IsValid())
-		{
-			bIsDeactivated = true;
-			return;
-		}
 	}
 
-	ACharacterBase* PlayerCharacter = Cast<ACharacterBase>(PlayerPawn.Get());
+	ACharacterBase* PlayerCharacter = PlayerPawn.IsValid() ? Cast<ACharacterBase>(PlayerPawn.Get()) : nullptr;
 
-	// If player is valid and alive (Health > 0), chase them.
-	if (PlayerPawn.IsValid() && PlayerCharacter && PlayerCharacter->GetHealth() > 0)
+	// If the player is valid and alive, chase them.
+	if (PlayerCharacter && PlayerCharacter->GetHealth() > 0)
 	{
 		// --- Rotation ---
 		const FVector Direction = PlayerPawn->GetActorLocation() - GetActorLocation();
@@ -80,7 +73,7 @@ void AEnemyChaser::Tick(float DeltaTime)
 		if (bIsInRange && !bCanFire)
 		{
 			bCanFire = true;
-			GetWorldTimerManager().SetTimer(M_FireTimerHandle, this, &AEnemyCharacter::Fire, M_FireRate, true);
+			GetWorldTimerManager().SetTimer(M_FireTimerHandle, this, &AEnemyCharacter::Fire, M_FireRate, true, 0.0f);
 		}
 		else if (!bIsInRange && bCanFire)
 		{
@@ -88,24 +81,22 @@ void AEnemyChaser::Tick(float DeltaTime)
 			GetWorldTimerManager().ClearTimer(M_FireTimerHandle);
 		}
 	}
-	else // Player is dead or invalid.
+	else // Player is dead or invalid, so deactivate.
 	{
-		// Detach the AI controller permanently.
-		AController* CurrentController = GetController();
-		if (CurrentController)
-		{
-			CurrentController->UnPossess();
-		}
 		bIsDeactivated = true;
 
-		// Stop firing.
+		// Stop firing if we were.
 		if (bCanFire)
 		{
 			bCanFire = false;
 			GetWorldTimerManager().ClearTimer(M_FireTimerHandle);
 		}
 
-		// Move forward one last time to start flying off.
-		AddMovementInput(GetActorForwardVector());
+		// Stop any AI-driven movement.
+		AController* CurrentController = GetController();
+		if (CurrentController)
+		{
+			CurrentController->StopMovement();
+		}
 	}
 }

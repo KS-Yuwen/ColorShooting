@@ -64,6 +64,12 @@ public:
 	virtual void Fire();
 
 protected:
+	/**
+	 * @brief Fires a projectile in a specified direction.
+	 * @param FireRotation The rotation that determines the projectile's direction.
+	 */
+	void FireInDirection(const FRotator& FireRotation);
+
 	virtual void OnDeath_Implementation() override;
 
 private:

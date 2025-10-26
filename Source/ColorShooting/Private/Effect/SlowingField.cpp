@@ -17,16 +17,14 @@ ASlowingField::ASlowingField()
 	M_MeshComponent->SetupAttachment(RootComponent);
 	M_MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	// Load a default mesh and material for visualization
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereMeshAsset(TEXT("/Engine/BasicShapes/Sphere"));
-	if (SphereMeshAsset.Succeeded())
+	// Set default mesh and material from properties set in Blueprint
+	if (M_DefaultMesh)
 	{
-		M_MeshComponent->SetStaticMesh(SphereMeshAsset.Object);
+		M_MeshComponent->SetStaticMesh(M_DefaultMesh);
 	}
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> MaterialAsset(TEXT("/Engine/EditorMaterials/WidgetGridVertexColorMaterial"));
-	if (MaterialAsset.Succeeded())
+	if (M_DefaultMaterial)
 	{
-		M_MeshComponent->SetMaterial(0, MaterialAsset.Object);
+		M_MeshComponent->SetMaterial(0, M_DefaultMaterial);
 	}
 }
 
@@ -42,7 +40,7 @@ void ASlowingField::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	// Reset time dilation for all affected actors when the field is destroyed
 	for (TObjectPtr<AActor> actor : M_AffectedActors)
 	{
-		if (actor) // Corrected check for TObjectPtr
+		if (IsValid(actor.Get()))
 		{
 			actor->CustomTimeDilation = 1.0f;
 		}

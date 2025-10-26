@@ -32,6 +32,14 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UStaticMeshComponent> M_MeshComponent;
 
+	/** Default mesh for visualizing the field's area. Set in Blueprint defaults. */
+	UPROPERTY(EditDefaultsOnly, Category = "Visuals", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UStaticMesh> M_DefaultMesh;
+
+	/** Default material for visualizing the field's area. Set in Blueprint defaults. */
+	UPROPERTY(EditDefaultsOnly, Category = "Visuals", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UMaterialInterface> M_DefaultMaterial;
+
 	/** The factor by which to slow down actors (e.g., 0.5 for 50% speed) */
 	float M_SlowFactor = 1.0f;
 

@@ -106,6 +106,9 @@ private:
 	// 弾をスポーンさせるヘルパー関数
 	void SpawnBullet(const FVector& Location, const FRotator& Rotation);
 
+	// 発射時のVFXとサウンドを再生するヘルパー関数
+	void PlayFireEffects(const FVector& Location, const FRotator& Rotation);
+
 private:
 	// ボス死亡イベント
 	FOnBossDied M_OnBossDied;

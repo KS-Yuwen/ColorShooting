@@ -23,30 +23,6 @@
 APlayerCharacter::APlayerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
-
-	static ConstructorHelpers::FClassFinder<ABullet> PlayerBulletBPClass(TEXT("/Game/BluePrints/Bullet/Player/BP_PlayerBullet"));
-	if (PlayerBulletBPClass.Succeeded())
-	{
-		M_PlayerBulletBP = PlayerBulletBPClass.Class;
-	}
-
-	static ConstructorHelpers::FClassFinder<AGreenBullet> PlayerBulletGreenBPClass(TEXT("/Game/BluePrints/Bullet/Player/BP_PlayerBulletGreen"));
-	if (PlayerBulletGreenBPClass.Succeeded())
-	{
-		M_PlayerBulletGreenBP = PlayerBulletGreenBPClass.Class;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> RedBulletMaterialAsset(TEXT("/Game/Assets/Materials/M_BulletColorRed"));
-	if (RedBulletMaterialAsset.Succeeded())
-	{
-		M_RedBulletMaterial = RedBulletMaterialAsset.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UMaterialInterface> BlueBulletMaterialAsset(TEXT("/Game/Assets/Materials/M_BulletColorBlue"));
-	if (BlueBulletMaterialAsset.Succeeded())
-	{
-		M_BlueBulletMaterial = BlueBulletMaterialAsset.Object;
-	}
 }
 
 void APlayerCharacter::BeginPlay()
@@ -398,21 +374,25 @@ void APlayerCharacter::ChangeWeapon(const FInputActionValue &value)
 
 void APlayerCharacter::AddBomb()
 {
+	// If bomb stock is already full, add score instead and exit.
 	if (M_BombStock >= M_MaxBombStock)
 	{
-		AColorShootingGameMode *gameMode = Cast<AColorShootingGameMode>(UGameplayStatics::GetGameMode(this));
+		AColorShootingGameMode* gameMode = Cast<AColorShootingGameMode>(UGameplayStatics::GetGameMode(this));
 		if (gameMode == nullptr)
 		{
 			return;
 		}
 
-		UGameConstantManager *constantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
-		if (constantManager != nullptr)
+		UGameConstantManager* constantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
+		if (constantManager == nullptr)
 		{
-			gameMode->AddScore(constantManager->GetIntValue(FName("Score.ItemGet")));
+			return;
 		}
+
+		gameMode->AddScore(constantManager->GetIntValue(FName("Score.ItemGet")));
 		return;
 	}
+
 	M_BombStock++;
 }
 
@@ -423,43 +403,43 @@ int32 APlayerCharacter::GetBombStock() const
 
 void APlayerCharacter::AddShotLevel(const EShotType shotType)
 {
-	AColorShootingGameMode *gameMode = Cast<AColorShootingGameMode>(UGameplayStatics::GetGameMode(this));
+	AColorShootingGameMode* gameMode = Cast<AColorShootingGameMode>(UGameplayStatics::GetGameMode(this));
 	if (gameMode == nullptr)
 	{
 		return;
 	}
 
-	int32* shotLevel = nullptr;
+	int32* shotLevelPtr = nullptr;
 	switch (shotType)
 	{
 	case EShotType::Red:
-		shotLevel = &M_RedShotLevel;
+		shotLevelPtr = &M_RedShotLevel;
 		break;
 	case EShotType::Green:
-		shotLevel = &M_GreenShotLevel;
+		shotLevelPtr = &M_GreenShotLevel;
 		break;
 	case EShotType::Blue:
-		shotLevel = &M_BlueShotLevel;
+		shotLevelPtr = &M_BlueShotLevel;
 		break;
 	}
 
-	if (shotLevel == nullptr)
+	if (shotLevelPtr == nullptr)
 	{
 		return;
 	}
 
-	if (*shotLevel < M_MaxShotLevel)
+	// If shot level is already maxed out, add score instead and exit.
+	if (*shotLevelPtr >= M_MaxShotLevel)
 	{
-		(*shotLevel)++;
-	}
-	else
-	{
-		UGameConstantManager *constantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
+		UGameConstantManager* constantManager = GetGameInstance()->GetSubsystem<UGameConstantManager>();
 		if (constantManager != nullptr)
 		{
 			gameMode->AddScore(constantManager->GetIntValue(FName("Score.ItemGet")));
 		}
+		return;
 	}
+
+	(*shotLevelPtr)++;
 }
 
 void APlayerCharacter::InitializeAndActivateBullet(ABullet* newBullet, const FVector& spawnLocation, const FRotator& spawnRotation, UMaterialInterface* bulletMaterial, EShotType shotType)
